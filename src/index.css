@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 160 84% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 160 84% 45%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 160 84% 45%;
+    --radius: 1rem;
+    --glass-bg: 0 0% 0% / 0.03;
+    --glass-border: 0 0% 0% / 0.06;
+    --glass-hover: 0 0% 0% / 0.06;
+    --glass-active: 0 0% 0% / 0.08;
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 100% / 0.03;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 160 84% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 100% / 0.05;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 100% / 0.05;
+    --muted-foreground: 0 0% 60%;
+    --accent: 160 84% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 100% / 0.08;
+    --input: 0 0% 100% / 0.08;
+    --ring: 160 84% 45%;
+    --glass-bg: 0 0% 100% / 0.03;
+    --glass-border: 0 0% 100% / 0.06;
+    --glass-hover: 0 0% 100% / 0.06;
+    --glass-active: 0 0% 100% / 0.08;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  .dark body {
+    background-image: 
+      radial-gradient(ellipse at 50% 0%, rgba(5, 150, 105, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(5, 150, 105, 0.04) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+  
+  body:not(.dark) {
+    background-image: 
+      radial-gradient(ellipse at 50% 0%, rgba(5, 150, 105, 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(5, 150, 105, 0.02) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-background/60 backdrop-blur-md border border-foreground/[0.08] rounded-2xl shadow-sm;
+  }
+  
+  .glass-hover {
+    @apply glass hover:bg-background/80 hover:border-emerald-500/30 transition-all duration-300 shadow-md;
+  }
+
+  .glass-card {
+    @apply glass hover:bg-background/80 hover:border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-500;
+  }
+
+  .glass-button {
+    @apply glass bg-foreground/[0.05] hover:bg-foreground/[0.08] active:scale-[0.97] transition-all duration-200 px-6 py-2.5 rounded-full text-sm font-medium;
+  }
+
+  .glass-button-primary {
+    @apply bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/30 hover:bg-emerald-500/30 hover:border-emerald-500/50 active:scale-[0.97] transition-all duration-200 px-6 py-2.5 rounded-full text-sm font-medium text-emerald-600 dark:text-emerald-200 shadow-lg shadow-emerald-500/10;
+  }
+
+  .section-title {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+  }
+
+  .text-gradient {
+    @apply dark:bg-gradient-to-b dark:from-white dark:to-white/60 bg-gradient-to-b from-black to-black/60 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-accent {
+    @apply dark:bg-gradient-to-r dark:from-emerald-400 dark:to-emerald-200 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.4);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Selection */
+::selection {
+  background: rgba(5, 150, 105, 0.3);
+  color: inherit;
+}
