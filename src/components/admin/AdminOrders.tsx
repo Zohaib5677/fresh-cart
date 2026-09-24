@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
+import { callAdminData } from '@/lib/adminData';
 import { formatPrice } from '@/lib/currency';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -84,9 +85,7 @@ const AdminOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-data', {
-        body: { table: 'orders' }
-      });
+      const { data, error } = await callAdminData({ table: 'orders' });
 
       if (error) throw error;
       setOrders(data || []);
@@ -148,12 +147,10 @@ const AdminOrders = () => {
          updateData.admin_note = adminNoteAdd;
       }
 
-      const { error } = await supabase.functions.invoke('admin-data', {
-        body: {
-          action: 'update_order',
-          orderId,
-          updateData
-        }
+      const { error } = await callAdminData({
+        action: 'update_order',
+        orderId,
+        updateData,
       });
 
       if (error) throw error;
@@ -190,15 +187,13 @@ const AdminOrders = () => {
   const handleApprovePayment = async (orderId: string) => {
     setIsProcessing(true);
     try {
-      const { error } = await supabase.functions.invoke('admin-data', {
-        body: {
-          action: 'update_order',
-          orderId,
-          updateData: {
-            status: 'confirmed',
-            admin_note: adminNote.trim() || null
-          }
-        }
+      const { error } = await callAdminData({
+        action: 'update_order',
+        orderId,
+        updateData: {
+          status: 'confirmed',
+          admin_note: adminNote.trim() || null,
+        },
       });
 
       if (error) throw error;

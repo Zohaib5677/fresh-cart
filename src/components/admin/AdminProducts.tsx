@@ -31,6 +31,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
+import { callAdminData } from '@/lib/adminData';
 import { formatPrice } from '@/lib/currency';
 import { toast } from 'sonner';
 import { categories } from '@/data/products';
@@ -294,22 +295,18 @@ const AdminProducts = () => {
       };
 
       if (editingProduct) {
-          const { error } = await supabase.functions.invoke('admin-data', {
-            body: { 
-              action: 'update_product', 
-              productId: editingProduct.id, 
-              productData 
-            }
+          const { error } = await callAdminData({
+            action: 'update_product',
+            productId: editingProduct.id,
+            productData,
           });
 
           if (error) throw error;
           toast.success('Product updated successfully');
         } else {
-          const { error } = await supabase.functions.invoke('admin-data', {
-            body: { 
-              action: 'create_product', 
-              productData 
-            }
+          const { error } = await callAdminData({
+            action: 'create_product',
+            productData,
           });
         if (error) throw error;
         toast.success('Product created successfully');
@@ -327,9 +324,7 @@ const AdminProducts = () => {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const { error } = await supabase.functions.invoke('admin-data', {
-        body: { action: 'delete_product', productId: id }
-      });
+      const { error } = await callAdminData({ action: 'delete_product', productId: id });
 
       if (error) throw error;
       toast.success('Product deleted successfully');
@@ -348,9 +343,7 @@ const AdminProducts = () => {
 
     try {
       const toastId = toast.loading('Deleting all products...');
-      const { error } = await supabase.functions.invoke('admin-data', {
-        body: { action: 'delete_all_products' }
-      });
+      const { error } = await callAdminData({ action: 'delete_all_products' });
 
       if (error) throw error;
       toast.success('All products deleted successfully', { id: toastId });

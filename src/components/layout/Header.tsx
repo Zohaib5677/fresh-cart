@@ -69,7 +69,7 @@ const Header = () => {
 
             <MagneticButton>
               <Link to="/products" className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all">
-                <Search className="h-5 w-5 md:hidden" />
+                <Search className="h-5 w-5 " />
               </Link>
             </MagneticButton>
             
@@ -80,13 +80,13 @@ const Header = () => {
             </MagneticButton>
 
             <MagneticButton>
-              <Link to={user ? '/orders' : '/auth'} className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all">
+              <Link to={user ? '/account' : '/auth'} className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all">
                 <User className="h-5 w-5" />
               </Link>
             </MagneticButton>
 
             <MagneticButton>
-              <Link to="/cart" className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all relative">
+              <Link to={user ? '/cart' : '/auth'} className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all relative">
                 <ShoppingCart className="h-5 w-5" />
                 <AnimatePresence>
                   {cartItemsCount > 0 && (

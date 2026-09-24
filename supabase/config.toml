@@ -1,3 +1,6 @@
+[functions.send-contact-email]
+enabled = true
+verify_jwt = false
 
 [functions.admin-data]
 enabled = true

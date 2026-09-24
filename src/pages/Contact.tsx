@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -19,16 +20,66 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsSubmitting(true);
+    
+  //   // Simulate form submission
+  //   await new Promise(resolve => setTimeout(resolve, 1000));
+    
+  //   toast.success('Message sent successfully! We\'ll get back to you soon.');
+  //   setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+  //   setIsSubmitting(false);
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast.success('Message sent successfully! We\'ll get back to you soon.');
-    setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-    setIsSubmitting(false);
+  
+    try {
+      let sent = false;
+
+      const { data, error } = await supabase.functions.invoke('send-contact-email', {
+        body: formData,
+      });
+
+      if (!error && data?.success === true) {
+        sent = true;
+      } else {
+        const response = await fetch('/api/send-contact-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload?.success === false) {
+          const details = payload?.error;
+          throw new Error(
+            typeof details === 'string' ? details : details?.message || 'Failed to send message'
+          );
+        }
+        sent = true;
+      }
+
+      if (!sent) {
+        throw new Error('Failed to send message');
+      }
+
+      toast.success("Message sent successfully! We'll get back to you soon.");
+  
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [

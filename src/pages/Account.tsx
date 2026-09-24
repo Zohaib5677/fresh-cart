@@ -8,7 +8,7 @@ import { ProfileCard } from '@/components/ui/react-bits';
 import { useAuth } from '@/hooks/useAuth';
 
 const Account = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -19,6 +19,13 @@ const Account = () => {
           email={user?.email || 'user@example.com'} 
           role="Verified Buyer"
         />
+        
+        <button
+  onClick={signOut}
+  className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+>
+  Sign Out
+</button>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

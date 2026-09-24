@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 // @ts-ignore
 import { GlassCard, MagneticButton } from '@/components/ui/react-bits';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { callAdminData } from '@/lib/adminData';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { formatPrice } from '@/lib/currency';
@@ -40,12 +40,10 @@ const Orders = () => {
     const fetchOrders = async () => {
       if (!user) return;
 
-      const { data, error } = await supabase.functions.invoke('admin-data', {
-        body: {
-          table: 'user_orders',
-          userId: user.id,
-          userName: user.user_metadata?.full_name || ''
-        }
+      const { data, error } = await callAdminData({
+        table: 'user_orders',
+        userId: user.id,
+        userName: user.user_metadata?.full_name || '',
       });
 
       if (!error && data) {
