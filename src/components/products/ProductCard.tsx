@@ -1,146 +1,79 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Heart, ShoppingCart } from 'lucide-react';
-// @ts-ignore
-import { GlassCard, MagneticButton, GlareHover, ReflectiveCard } from '@/components/ui/react-bits';
-import { useCartStore } from '@/stores/cartStore';
+import { Heart, ShoppingBag, Star } from 'lucide-react';
+import { useCartStore, type Product } from '@/stores/cartStore';
 import { useWishlist } from '@/hooks/useWishlist';
-import type { Database } from '@/integrations/supabase/types';
 import { formatPrice } from '@/lib/currency';
 import { optimizeImageUrl } from '@/lib/utils';
 import { toast } from 'sonner';
-
-type Product = Database['public']['Tables']['products']['Row'];
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const [isHovered, setIsHovered] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   const { isInWishlist, toggleWishlist } = useWishlist();
-
   const isWishlisted = isInWishlist(product.id);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleAddToCart = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     addItem(product);
-    toast.success(`${product.name} added to cart`, {
-      className: 'glass !bg-background/80 !border-emerald-500/30 !text-foreground',
-    });
+    toast.success(`${product.name} added to cart`);
   };
 
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleWishlist = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     toggleWishlist(product.id);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-    >
-      <Link
-        to={`/product/${product.id}`}
-        className="block group h-full"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <ReflectiveCard className="h-full flex flex-col relative overflow-hidden group-hover:bg-foreground/[0.05] group-hover:border-foreground/[0.08] group-hover:shadow-lg group-hover:shadow-emerald-500/5 transition-all duration-500">
-          <GlareHover className="w-full h-full flex flex-col">
-          
-          {/* Badges */}
-          <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-            {product.isTopSelling && (
-              <div className="glass px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground border-foreground/[0.1] bg-foreground/[0.05]">
-                Top Selling
-              </div>
-            )}
-            {product.isExclusive && (
-              <div className="glass px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 border-emerald-500/20 bg-emerald-500/10">
-                Exclusive
-              </div>
-            )}
-            {product.discountPercentage && (
-              <div className="glass px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-400 border-rose-500/20 bg-rose-500/10">
-                -{product.discountPercentage}% OFF
-              </div>
-            )}
-          </div>
-
-          {/* Wishlist Button */}
+    <article className="group relative min-w-0">
+      <Link to={`/product/${product.id}`} className="block">
+        <div className="relative aspect-[0.78] overflow-hidden bg-[#eee9eb]">
+          {product.discountPercentage ? (
+            <span className="absolute left-2 top-2 z-10 bg-[#c97685] px-2 py-1 text-[9px] font-semibold text-white">-{product.discountPercentage}%</span>
+          ) : null}
           <button
+            type="button"
             onClick={handleWishlist}
-            className={`absolute top-4 right-4 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isWishlisted
-                ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                : 'glass bg-foreground/[0.05] text-foreground/50 hover:text-rose-400 hover:border-rose-500/30'
-            }`}
+            aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+            className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 transition-colors ${isWishlisted ? 'text-[#c97685]' : 'text-[#716b70] hover:text-[#c97685]'}`}
           >
-            <motion.div whileTap={{ scale: 0.8 }}>
-              <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
-            </motion.div>
+            <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
           </button>
-
-          {/* Image */}
-          <div className="relative aspect-square overflow-hidden bg-foreground/[0.02] p-8">
-            <motion.img
-              src={optimizeImageUrl(product.imageUrl, 400, 60)}
-              alt={product.name}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full object-contain dark:mix-blend-screen mix-blend-multiply"
-              animate={{ scale: isHovered ? 1.05 : 1 }}
-              transition={{ duration: 0.5, ease: [0.33, 1, 0.68, 1] }}
-            />
+          <img
+            src={optimizeImageUrl(product.imageUrl, 600, 75)}
+            alt={product.name}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={product.stockQuantity === 0}
+            aria-label={product.stockQuantity > 0 ? `Add ${product.name} to cart` : `${product.name} is out of stock`}
+            className="absolute bottom-2 left-2 right-2 flex h-9 items-center justify-center gap-2 bg-white/95 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#242024] opacity-0 transition-opacity group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60 max-sm:opacity-100"
+          >
+            <ShoppingBag className="h-3.5 w-3.5" />
+            {product.stockQuantity > 0 ? 'Add to bag' : 'Out of stock'}
+          </button>
+        </div>
+        <div className="pt-3">
+          <p className="text-[9px] uppercase tracking-[0.14em] text-[#9a9298]">{product.category}</p>
+          <h3 className="mt-1 line-clamp-2 min-h-[2.5rem] text-xs font-medium leading-5 text-[#3f393e]">{product.name}</h3>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-[#c05f70]">{formatPrice(product.price)}</span>
+              {product.originalPrice ? <span className="text-[10px] text-[#9a9298] line-through">{formatPrice(product.originalPrice)}</span> : null}
+            </div>
+            <span className="flex items-center gap-1 text-[10px] text-[#777077]"><Star className="h-3 w-3 fill-[#c99446] text-[#c99446]" /> {product.rating.toFixed(1)} ({product.reviewCount})</span>
           </div>
-
-          {/* Content */}
-          <div className="p-5 flex flex-col flex-1">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 mb-2">
-              {product.category}
-            </div>
-            
-            <h3 className="font-semibold text-sm text-foreground mb-4 line-clamp-2 leading-snug">
-              {product.name}
-            </h3>
-            
-            <div className="mt-auto">
-              <div className="flex items-end gap-2 mb-6">
-                <span className="text-gradient-accent text-xl font-bold">
-                  {formatPrice(product.price)}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-sm text-foreground/30 line-through mb-0.5">
-                    {formatPrice(product.originalPrice)}
-                  </span>
-                )}
-              </div>
-
-              {/* Add to Cart */}
-              <div onClick={(e) => e.preventDefault()}>
-                <MagneticButton>
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={product.stockQuantity === 0}
-                    className="w-full glass-button-primary flex items-center justify-center gap-2"
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    <span>{product.stockQuantity > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
-                  </button>
-                </MagneticButton>
-              </div>
-            </div>
-            </div>
-          </GlareHover>
-        </ReflectiveCard>
+        </div>
       </Link>
-    </motion.div>
+    </article>
   );
 };
 

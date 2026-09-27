@@ -1,74 +1,78 @@
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-// @ts-ignore
-import { GradualBlur } from '@/components/ui/react-bits';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import type { Product } from '@/stores/cartStore';
 
-const banners = [
-  {
-    id: 1,
-    title: "Independence Day Sale",
-    subtitle: "Flat 70% Off Today",
-    image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=60&w=600&auto=format&fit=crop",
-    link: "/products?filter=promotional",
-    color: "from-blue-600/80 to-purple-600/80"
-  },
-  {
-    id: 2,
-    title: "Exclusive Kitchen Setup",
-    subtitle: "Premium cookware collection",
-    image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=60&w=600&auto=format&fit=crop",
-    link: "/products?category=kitchen",
-    color: "from-emerald-600/80 to-teal-600/80"
-  },
-  {
-    id: 3,
-    title: "Fresh Dairy Daily",
-    subtitle: "Straight from the farm",
-    image: "https://images.unsplash.com/photo-1628088062854-d1870b4553da?q=60&w=600&auto=format&fit=crop",
-    link: "/products?category=dairy",
-    color: "from-orange-500/80 to-red-500/80"
-  }
-];
+interface HeroSectionProps {
+  products: Product[];
+}
 
-const HeroSection = () => {
+const HeroSection = ({ products }: HeroSectionProps) => {
+  const editorialProducts = products.filter((product) => product.imageUrl).slice(0, 3);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (editorialProducts.length < 2) return;
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((currentIndex) => (currentIndex + 1) % editorialProducts.length);
+    }, 4500);
+
+    return () => window.clearInterval(timer);
+  }, [editorialProducts.length]);
+
+  const activeProduct = editorialProducts[activeIndex];
+  const showNext = () => setActiveIndex((activeIndex + 1) % editorialProducts.length);
+  const showPrevious = () => setActiveIndex((activeIndex - 1 + editorialProducts.length) % editorialProducts.length);
+
   return (
-    <section className="pt-24 pb-8 w-full overflow-hidden">
-      <div className="container mx-auto px-4">
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {banners.map((banner) => (
-            <Link 
-              key={banner.id} 
-              to={banner.link}
-              className="relative shrink-0 w-[85vw] md:w-[600px] h-[200px] md:h-[300px] snap-center rounded-3xl overflow-hidden group"
-            >
-              <img 
-                src={banner.image} 
-                alt={banner.title} 
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-              />
-              <div className={`absolute inset-0 bg-gradient-to-r ${banner.color} mix-blend-multiply opacity-60`} />
-              
-              {/* Replacing gradient with GradualBlur for a premium text backdrop */}
-              <div className="absolute bottom-0 left-0 right-0 h-32">
-                <GradualBlur className="w-full h-full" />
-              </div>
-              
-              <div className="absolute bottom-0 left-0 p-6 md:p-8 w-full flex flex-row justify-between items-end z-20">
-                <div>
-                  <h3 className="text-white/80 font-medium tracking-wider uppercase text-xs md:text-sm mb-2">
-                    {banner.subtitle}
-                  </h3>
-                  <h2 className="text-white font-display text-2xl md:text-4xl font-bold">
-                    {banner.title}
-                  </h2>
+    <section className="hero-editorial pt-40 md:pt-36">
+      <div className="mx-auto w-full">
+        {/* <div className="flex min-h-[340px] flex-col justify-center bg-[#d8c5ee] p-7 md:min-h-[430px] md:p-10">
+          <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#72577e]">✣ Vertexo trends</p>
+          <h1 className="max-w-[260px] font-serif text-5xl leading-[0.92] text-[#201b22] md:text-6xl">New energy.<br /><em>New you.</em></h1>
+          <p className="mt-5 max-w-[220px] text-xs leading-relaxed text-[#584c60]">Curated looks for every version of you.</p>
+          <Link to="/products" className="mt-7 inline-flex w-fit bg-[#252126] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-white transition-transform hover:-translate-y-0.5">Shop the edit <span className="ml-3">→</span></Link>
+        </div> */}
+        {activeProduct ? (
+          <div className="relative h-[28vh] min-h-[200px] w-full overflow-hidden bg-[#d9e7e3] md:h-[36vh] md:min-h-[300px]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeProduct.id}
+                initial={{ opacity: 0, scale: 1.04, x: 20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.98, x: -20 }}
+                transition={{ duration: 0.55, ease: 'easeOut' }}
+                className="absolute inset-0"
+              >
+                <Link to={`/product/${activeProduct.id}`} className="group block h-full">
+                  <img src={activeProduct.imageUrl} alt={activeProduct.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/10 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-6 pt-24 text-white md:p-10 md:pt-32">
+                    <p className="text-[9px] uppercase tracking-[0.18em] text-white/70">{activeIndex === 0 ? 'Trend alert' : activeIndex === 1 ? 'The edit' : 'Just dropped'}</p>
+                    <h2 className="mt-1 font-serif text-3xl md:text-5xl">{activeProduct.category}</h2>
+                    <p className="mt-1 text-xs text-white/75 md:text-sm">{activeProduct.name}</p>
+                  </div>
+                </Link>
+              </motion.div>
+            </AnimatePresence>
+
+            {editorialProducts.length > 1 && (
+              <>
+                <button type="button" onClick={showPrevious} aria-label="Previous banner" className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#242024] shadow-lg transition-transform hover:scale-105 md:left-8"><ArrowLeft className="h-4 w-4" /></button>
+                <button type="button" onClick={showNext} aria-label="Next banner" className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#242024] shadow-lg transition-transform hover:scale-105 md:right-8"><ArrowRight className="h-4 w-4" /></button>
+                <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-black/30 px-3 py-2 backdrop-blur-sm md:bottom-8">
+                  {editorialProducts.map((product, index) => (
+                    <button key={product.id} type="button" onClick={() => setActiveIndex(index)} aria-label={`Show banner ${index + 1}`} className={`h-2.5 w-2.5 rounded-full border border-white transition-all ${index === activeIndex ? 'scale-125 bg-white' : 'bg-transparent'}`} />
+                  ))}
                 </div>
-                <div className="glass bg-white/10 border-white/20 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md whitespace-nowrap hidden sm:block">
-                  Shop Now
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex h-[38vh] min-h-[260px] items-center justify-center bg-[#b9d6d4] p-8 text-center md:h-[50vh] md:min-h-[420px]"><p className="font-serif text-3xl text-[#214341]">Your next everyday edit starts here.</p></div>
+        )}
       </div>
     </section>
   );

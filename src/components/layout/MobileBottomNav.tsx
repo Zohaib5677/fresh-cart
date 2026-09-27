@@ -22,19 +22,19 @@ const MobileBottomNav = () => {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass rounded-none border-b-0 border-x-0 border-t border-foreground/[0.06] bg-background/80 pb-safe pt-2">
-      <div className="flex justify-around items-center px-2 h-14">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#e8e3e5] bg-[#fffdfc]/95 pb-safe pt-2 backdrop-blur-md md:hidden">
+      <div className="flex h-14 items-center justify-around px-2">
         {navItems.map((item) => {
           const active = isActive(item.path);
           return (
             <Link
               key={item.label}
               to={item.path}
-              className={`flex flex-col items-center justify-center w-16 h-full gap-1 transition-colors ${
-                active ? 'text-emerald-400' : 'text-foreground/50 hover:text-foreground/80'
+                className={`flex h-full w-16 flex-col items-center justify-center gap-1 transition-colors ${
+                  active ? 'text-[#a35d70]' : 'text-[#8f878d] hover:text-[#4e484d]'
               }`}
             >
-              <item.icon className={`h-5 w-5 ${active ? 'fill-emerald-400/20' : ''}`} />
+              <item.icon className={`h-5 w-5 ${active ? 'fill-[#a35d70]/20' : ''}`} />
               <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );

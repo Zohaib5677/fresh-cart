@@ -1,18 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, Heart, ShoppingCart, User, Menu, X, Sun, Moon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Search, Heart, ShoppingCart, User, Menu, X, Sun, Moon, Gift, CircleHelp } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
-// @ts-ignore
-import { MagneticButton, ShuffleText } from '@/components/ui/react-bits';
 import { useAuth } from '@/hooks/useAuth';
 import { useCartStore } from '@/stores/cartStore';
+import SearchAutocomplete from '@/components/search/SearchAutocomplete';
+import { categories } from '@/data/products';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
-  const cartItemsCount = useCartStore((state) => state.items.length);
-  const navigate = useNavigate();
+  const cartItemsCount = useCartStore((state) => state.items.reduce((total, item) => total + item.quantity, 0));
   const { scrollY } = useScroll();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
 
@@ -27,66 +26,53 @@ const Header = () => {
 
   return (
     <>
-      <header
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      <div className="fixed top-0 z-50 w-full">
+        <div className="h-8 bg-[#211e21] px-4 text-[10px] tracking-[0.08em] text-white/80">
+          <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between">
+            <span>Free standard shipping on orders over ₨4,000</span>
+            <div className="hidden items-center gap-5 md:flex">
+              <a href="#track" className="hover:text-white transition-colors">Track order</a>
+              <a href="#rewards" className="hover:text-white transition-colors">HAMAASH rewards</a>
+              <a href="#help" className="hover:text-white transition-colors">Help center</a>
+            </div>
+          </div>
+        </div>
+        <header
+        className={`bg-white/95 transition-all duration-300 ${
           isScrolled
-            ? 'backdrop-blur-xl bg-background/80 border-b border-foreground/[0.06] py-3'
-            : 'bg-transparent py-5'
+            ? 'backdrop-blur-xl border-b border-[#e8e3e5] py-3'
+            : 'border-b border-[#eee9eb] py-4'
         }`}
       >
-        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+        <div className="mx-auto flex max-w-[1440px] items-center gap-5 px-4 md:px-8">
+          <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden" aria-label="Open menu">
+            <Menu className="h-5 w-5" />
+          </button>
           {/* Logo */}
-          <Link to="/">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-              className="font-display text-2xl font-bold tracking-tight text-gradient"
-            >
-              <ShuffleText text="SnapCart" />
-            </motion.div>
+          <Link to="/" className="shrink-0 font-serif text-[25px] tracking-[0.08em] text-[#242024] md:text-[28px]">
+            HAMAASH
           </Link>
 
           {/* Search (Desktop) */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8 relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-foreground/40 group-focus-within:text-foreground/80 transition-colors" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search premium products..."
-              className="w-full glass bg-foreground/[0.03] border-foreground/[0.08] rounded-full h-10 pl-11 pr-4 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:bg-foreground/[0.06] focus:border-foreground/[0.15] transition-all"
-            />
+          <div className="hidden flex-1 md:block md:max-w-md md:mx-auto">
+            <SearchAutocomplete className="w-full" />
           </div>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-2">
-            <MagneticButton>
-              <button onClick={toggleTheme} className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all">
+          <div className="hidden items-center gap-1 md:flex">
+              <button onClick={toggleTheme} className="header-icon" aria-label="Toggle theme">
                 {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
-            </MagneticButton>
-
-            <MagneticButton>
-              <Link to="/products" className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all">
+              <Link to="/products" className="header-icon" aria-label="Search products">
                 <Search className="h-5 w-5 " />
               </Link>
-            </MagneticButton>
-            
-            <MagneticButton>
-              <Link to="/products?filter=wishlist" className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all">
+              <Link to="/products?filter=wishlist" className="header-icon" aria-label="Wishlist">
                 <Heart className="h-5 w-5" />
               </Link>
-            </MagneticButton>
-
-            <MagneticButton>
-              <Link to={user ? '/account' : '/auth'} className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all">
+              <Link to={user ? '/account' : '/auth'} className="header-icon" aria-label={user ? 'Account' : 'Sign in'}>
                 <User className="h-5 w-5" />
               </Link>
-            </MagneticButton>
-
-            <MagneticButton>
-              <Link to={user ? '/cart' : '/auth'} className="w-10 h-10 flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.08] transition-all relative">
+              <Link to={user ? '/cart' : '/auth'} className="header-icon relative" aria-label="Shopping bag">
                 <ShoppingCart className="h-5 w-5" />
                 <AnimatePresence>
                   {cartItemsCount > 0 && (
@@ -94,26 +80,20 @@ const Header = () => {
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0, opacity: 0 }}
-                      className="absolute top-1 right-1 h-4 w-4 rounded-full bg-emerald-500 text-[10px] font-bold text-foreground flex items-center justify-center shadow-lg shadow-emerald-500/50"
+                      className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#c97685] text-[9px] font-bold text-white"
                     >
                       {cartItemsCount}
                     </motion.span>
                   )}
                 </AnimatePresence>
               </Link>
-            </MagneticButton>
           </div>
 
           {/* Mobile Menu Toggle */}
-          <div className="flex md:hidden items-center gap-2">
-            <button
-              onClick={toggleTheme}
-              className="w-10 h-10 flex items-center justify-center text-foreground/80"
-            >
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
-            
-            <Link to="/cart" className="w-10 h-10 flex items-center justify-center relative text-foreground/80">
+          <div className="ml-auto flex items-center gap-2 md:hidden">
+            <Link to="/products" className="header-icon" aria-label="Search products"><Search className="h-5 w-5" /></Link>
+            <Link to={user ? '/account' : '/auth'} className="header-icon" aria-label="Account"><User className="h-5 w-5" /></Link>
+            <Link to={user ? '/cart' : '/auth'} className="header-icon relative" aria-label="Shopping bag">
               <ShoppingCart className="h-5 w-5" />
               <AnimatePresence>
                 {cartItemsCount > 0 && (
@@ -121,23 +101,23 @@ const Header = () => {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
-                    className="absolute top-1 right-1 h-4 w-4 rounded-full bg-emerald-500 text-[10px] font-bold text-foreground flex items-center justify-center shadow-lg shadow-emerald-500/50"
+                    className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#c97685] text-[9px] font-bold text-white"
                   >
                     {cartItemsCount}
                   </motion.span>
                 )}
               </AnimatePresence>
             </Link>
-            
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="w-10 h-10 flex items-center justify-center text-foreground/80"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
           </div>
         </div>
+        <nav className="mx-auto mt-4 hidden max-w-[1440px] items-center justify-center gap-8 border-t border-[#eee9eb] pt-3 md:flex">
+          {[{ label: 'New In', path: '/products' }, ...categories.slice(0, 7).map((category) => ({ label: category.name.split(' ')[0], path: `/products?category=${category.id}` }))].map((item) => (
+            <Link key={item.label} to={item.path} className="text-[11px] uppercase tracking-[0.12em] text-[#5f595d] transition-colors hover:text-[#a35d70]">{item.label}</Link>
+          ))}
+          <Link to="/products?filter=promotional" className="text-[11px] uppercase tracking-[0.12em] text-[#a35d70]">Sale</Link>
+        </nav>
       </header>
+      </div>
 
       {/* Mobile Menu Sheet */}
       <AnimatePresence>
@@ -146,7 +126,7 @@ const Header = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-background/60 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <motion.div
@@ -154,14 +134,14 @@ const Header = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-4/5 max-w-sm glass bg-foreground/[0.02] border-l border-foreground/[0.06] rounded-none rounded-l-3xl p-6 flex flex-col"
+              className="absolute bottom-0 right-0 top-0 flex w-4/5 max-w-sm flex-col border-l border-[#e8e3e5] bg-[#fffdfd] p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-8">
-                <span className="font-display text-xl font-bold text-gradient">Menu</span>
+                <span className="font-serif text-xl tracking-[0.08em]">HAMAASH</span>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-10 h-10 flex items-center justify-center rounded-full glass bg-foreground/[0.05] text-foreground hover:bg-foreground/[0.1]"
+                  className="header-icon"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -172,6 +152,8 @@ const Header = () => {
                   { icon: Search, label: 'Search', path: '/products' },
                   { icon: Heart, label: 'Wishlist', path: '/products?filter=wishlist' },
                   { icon: User, label: user ? 'My Account' : 'Sign In', path: user ? '/orders' : '/auth' },
+                  { icon: Gift, label: 'Sale', path: '/products?filter=promotional' },
+                  { icon: CircleHelp, label: 'Help center', path: '/faq' },
                 ].map((item, i) => (
                   <motion.div
                     key={item.label}
@@ -182,10 +164,10 @@ const Header = () => {
                     <Link
                       to={item.path}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-4 glass bg-foreground/[0.03] p-4 rounded-xl hover:bg-foreground/[0.08] transition-colors"
+                      className="flex items-center gap-4 border-b border-[#eee9eb] py-4 transition-colors hover:text-[#a35d70]"
                     >
-                      <item.icon className="h-5 w-5 text-emerald-400" />
-                      <span className="text-foreground font-medium">{item.label}</span>
+                      <item.icon className="h-5 w-5 text-[#a35d70]" />
+                      <span className="font-medium">{item.label}</span>
                     </Link>
                   </motion.div>
                 ))}

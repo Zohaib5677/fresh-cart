@@ -21,8 +21,8 @@ const ProductSection = ({
   badge,
 }: ProductSectionProps) => {
   return (
-    <section className="py-20 relative z-10">
-      <div className="container mx-auto px-6">
+    <section className="relative z-10 bg-[#f4f0ed] py-10 md:py-10">
+      <div className="mx-auto max-w-[1440px] px-4 md:px-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
           <div>
@@ -31,7 +31,7 @@ const ProductSection = ({
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400 mb-3"
+                className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#a35d70]"
               >
                 {badge}
               </motion.div>
@@ -41,7 +41,7 @@ const ProductSection = ({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="section-title text-gradient leading-tight mb-2"
+              className="font-serif text-3xl leading-tight text-[#242024] md:text-4xl"
             >
               {title}
             </motion.h2>
@@ -51,7 +51,7 @@ const ProductSection = ({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
-                className="text-foreground/60 text-base"
+                className="text-sm text-[#777077]"
               >
                 {subtitle}
               </motion.p>
@@ -67,7 +67,7 @@ const ProductSection = ({
             >
               <Link 
                 to={viewAllLink}
-                className="group text-emerald-400 hover:text-emerald-300 text-sm font-medium inline-flex items-center gap-2 transition-colors"
+                className="group inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#5f595d] transition-colors hover:text-[#a35d70]"
               >
                 View All
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -77,7 +77,7 @@ const ProductSection = ({
         </div>
 
         {/* Products grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-9 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
           {products.map((product, index) => (
             <motion.div
               key={product.id}

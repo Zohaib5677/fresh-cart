@@ -1,9 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/stores/cartStore';
+import type { Database } from '@/integrations/supabase/types';
+
+type FlatDiscount = {
+  enabled?: boolean;
+  percentage?: number;
+};
 
 // Helper to format Supabase snake_case data to frontend camelCase data
-const formatProduct = (data: any, flatDiscount?: any): Product => {
+const formatProduct = (
+  data: Database['public']['Tables']['products']['Row'],
+  flatDiscount?: FlatDiscount | null
+): Product => {
   let price = data.price;
   let originalPrice = data.original_price;
   let discountPercentage = data.discount_percentage;
@@ -32,7 +41,7 @@ const formatProduct = (data: any, flatDiscount?: any): Product => {
     discountPercentage,
     deliveryFee: data.delivery_fee || 0,
     category: data.category,
-    imageUrl: data.image_url || 'https://images.unsplash.com/photo-1594224457860-c3d3a033f6dc?q=80&w=200&auto=format&fit=crop',
+    imageUrl: data.image_url || '/placeholder.svg',
     stockQuantity: data.stock_quantity || 0,
     isTopSelling: data.is_top_selling,
     isExclusive: data.is_exclusive,
@@ -52,7 +61,7 @@ export const useProducts = () => {
         .select('value')
         .eq('key', 'flat_discount')
         .maybeSingle();
-      const flatDiscount = settingsData?.value;
+      const flatDiscount = settingsData?.value as FlatDiscount | null | undefined;
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -78,7 +87,7 @@ export const useProduct = (id: string | undefined) => {
         .select('value')
         .eq('key', 'flat_discount')
         .maybeSingle();
-      const flatDiscount = settingsData?.value;
+      const flatDiscount = settingsData?.value as FlatDiscount | null | undefined;
       const { data, error } = await supabase
         .from('products')
         .select('*')
