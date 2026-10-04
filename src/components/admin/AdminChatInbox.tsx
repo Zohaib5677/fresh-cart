@@ -37,7 +37,9 @@ export const AdminChatInbox = () => {
   useEffect(() => {
     loadData();
     const unsubscribe = subscribeToChatUpdates(() => {
-      loadData();
+      // Realtime events must bypass localStorage, otherwise the UI keeps
+      // rendering the stale snapshot that was cached before the event.
+      loadData(true);
     });
     return () => unsubscribe();
   }, []);

@@ -31,9 +31,17 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       const headers = new Headers(options?.headers);
       const urlStr = typeof url === 'string' ? url : (url instanceof URL ? url.toString() : url?.url || String(url));
       const isStorageRequest = urlStr.includes('/storage/v1/object');
+      const isFunctionRequest = urlStr.includes('/functions/v1/');
+      const explicitAuthorization = headers.get('Authorization');
+      const hasExplicitFunctionToken =
+        isFunctionRequest &&
+        explicitAuthorization?.startsWith('Bearer ') &&
+        explicitAuthorization !== `Bearer ${SUPABASE_PUBLISHABLE_KEY}`;
 
       // Storage rejects Clerk `sub` values that are not UUIDs.
-      if (isStorageRequest || !isSupabaseAccessToken(clerkToken)) {
+      if (hasExplicitFunctionToken) {
+        // Preserve caller-supplied Clerk tokens for Edge Functions.
+      } else if (isStorageRequest || !isSupabaseAccessToken(clerkToken)) {
         headers.set('Authorization', `Bearer ${SUPABASE_PUBLISHABLE_KEY}`);
       } else {
         headers.set('Authorization', `Bearer ${clerkToken}`);

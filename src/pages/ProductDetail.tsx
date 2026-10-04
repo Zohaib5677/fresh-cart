@@ -364,24 +364,12 @@ const ProductDetail = () => {
         </div>
       </main>
 
-      {/* Floating Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#242024] via-[#242024]/90 to-transparent p-4 pb-safe pt-12 md:hidden">
-        <button
-          onClick={handleAddToCart}
-          disabled={product.stockQuantity === 0}
-          className="h-14 w-full bg-white text-sm font-semibold uppercase tracking-[0.08em] text-[#242024] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Add to Cart - {formatPrice(product.price)}
-        </button>
-      </div>
-
       <Footer />
     </div>
   );
 };
 
 export default ProductDetail;
-
 
 
 

@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuth as useClerkAuth } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -64,6 +65,7 @@ const StarRating = ({
 
 const ProductReviews = ({ productId }: ProductReviewsProps) => {
   const { user, isAdmin } = useAuth();
+  const { getToken } = useClerkAuth();
   const queryClient = useQueryClient();
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
@@ -108,15 +110,20 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
   const submitReview = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Must be logged in');
-      
-      // Get profile id
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
 
-      const token = await (window as any).Clerk?.session?.getToken() || '';
+      const authorName = user.fullName || user.firstName || user.email || null;
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .upsert(
+          { user_id: user.id, full_name: authorName },
+          { onConflict: 'user_id' }
+        )
+        .select('id')
+        .single();
+
+      if (profileError) throw profileError;
+
+      const token = await getToken();
       const reviewData = {
         product_id: productId,
         user_id: user.id,
@@ -124,7 +131,8 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
         rating: newRating,
         comment: JSON.stringify({
             text: newComment.trim() || null,
-            clerkUserId: user.id
+            clerkUserId: user.id,
+            authorName
         })
       };
 
@@ -154,7 +162,7 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
   // Delete review mutation
   const deleteReview = useMutation({
     mutationFn: async (reviewId: string) => {
-      const token = await (window as any).Clerk?.session?.getToken() || '';
+      const token = await getToken();
       const { data, error } = await supabase.functions.invoke('admin-data', {
           body: {
               action: 'delete_review',
@@ -267,7 +275,17 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-semibold text-ink">
-                          {review.profiles?.full_name || 'Anonymous User'}
+                          {(() => {
+                            try {
+                              const parsed = JSON.parse(review.comment || '{}');
+                              if (parsed.authorName) return parsed.authorName;
+                            } catch {}
+                            return review.profiles?.full_name ||
+                              (review.user_id === user?.id
+                                ? user.fullName || user.firstName || user.email
+                                : null) ||
+                              'Anonymous User';
+                          })()}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           <StarRating rating={review.rating} readonly />

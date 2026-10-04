@@ -24,7 +24,7 @@ export const CustomerChatWidget = ({ defaultOrderId }: { defaultOrderId?: string
   };
 
   const syncMessages = async () => {
-    const convs = await getStoredConversations();
+    const convs = await getStoredConversations(true);
     const active = convs.find((c) => c.id === conversationId) || convs[0];
     if (active && active.messages) {
       setMessages(active.messages);
@@ -37,7 +37,7 @@ export const CustomerChatWidget = ({ defaultOrderId }: { defaultOrderId?: string
       syncMessages();
     });
     return () => unsubscribe();
-  }, [isOpen]);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -55,7 +55,7 @@ export const CustomerChatWidget = ({ defaultOrderId }: { defaultOrderId?: string
   };
 
   return (
-    <div className="fixed bottom-36 right-4 md:bottom-24 md:right-6 z-[100] flex flex-col items-end pointer-events-auto">
+    <div className="fixed bottom-24 right-4 md:bottom-4 md:right-6 z-[100] flex flex-col items-end pointer-events-auto">
       <AnimatePresence>
         {isOpen && (
           <motion.div

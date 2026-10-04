@@ -129,11 +129,12 @@ export const saveConversationsLocally = (convs: Conversation[]) => {
 
 export const subscribeToChatUpdates = (callback: () => void) => {
   const handleEvent = () => callback();
+  const handleStorageEvent = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY) callback();
+  };
 
   window.addEventListener('snapcart_chat_updated', handleEvent);
-  window.addEventListener('storage', (e) => {
-    if (e.key === STORAGE_KEY) callback();
-  });
+  window.addEventListener('storage', handleStorageEvent);
 
   if (broadcastChannel) {
     broadcastChannel.onmessage = (event) => {
@@ -156,6 +157,7 @@ export const subscribeToChatUpdates = (callback: () => void) => {
 
   return () => {
     window.removeEventListener('snapcart_chat_updated', handleEvent);
+    window.removeEventListener('storage', handleStorageEvent);
     if (supabaseChannel) supabase.removeChannel(supabaseChannel);
   };
 };

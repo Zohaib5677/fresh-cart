@@ -14,7 +14,7 @@ function decodeJwtPayload(token: string): any {
     const base64Url = token.split('.')[1];
     if (!base64Url) return null;
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '=='.slice((base64.length + 2) % 4 === 0 ? 2 : (base64.length + 2) % 4);
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
     return JSON.parse(atob(padded));
   } catch {
     return null;
@@ -152,9 +152,30 @@ serve(async (req) => {
         throw new Error('Authentication is required to submit a review');
       }
 
+      let authorName: string | null = null;
+      try {
+        const parsedComment = JSON.parse(reviewData?.comment || '{}');
+        authorName = parsedComment.authorName || null;
+      } catch {
+        // Older clients may send plain-text comments.
+      }
+
+      // Keep the profile and review linked even when the browser-side profile
+      // write is blocked by RLS or the profile does not exist yet.
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .upsert(
+          { user_id: userId, full_name: authorName },
+          { onConflict: 'user_id' }
+        )
+        .select('id')
+        .single();
+      if (profileError) throw profileError;
+
       const reviewPayload = {
         ...reviewData,
         user_id: userId,
+        profile_id: profile.id,
       };
       const { data, error } = await supabase.from('reviews').insert(reviewPayload).select().single();
       if (error) throw error;
