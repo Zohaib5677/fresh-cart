@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Heart, ShoppingCart, User, Menu, X, Sun, Moon, Gift, CircleHelp } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Sun, Moon, Gift, CircleHelp } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useCartStore } from '@/stores/cartStore';
@@ -60,18 +60,13 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden items-center gap-1 md:flex">
-              <button onClick={toggleTheme} className="header-icon" aria-label="Toggle theme">
+              {/* <button onClick={toggleTheme} className="header-icon" aria-label="Toggle theme">
                 {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </button>
-              <Link to="/products" className="header-icon" aria-label="Search products">
+              </button> */}
+              {/* <Link to="/products" className="header-icon" aria-label="Search products">
                 <Search className="h-5 w-5 " />
-              </Link>
-              <Link to="/products?filter=wishlist" className="header-icon" aria-label="Wishlist">
-                <Heart className="h-5 w-5" />
-              </Link>
-              <Link to={user ? '/account' : '/auth'} className="header-icon" aria-label={user ? 'Account' : 'Sign in'}>
-                <User className="h-5 w-5" />
-              </Link>
+              </Link> */}
+            
               <Link to={user ? '/cart' : '/auth'} className="header-icon relative" aria-label="Shopping bag">
                 <ShoppingCart className="h-5 w-5" />
                 <AnimatePresence>
@@ -86,6 +81,9 @@ const Header = () => {
                     </motion.span>
                   )}
                 </AnimatePresence>
+              </Link>
+                <Link to={user ? '/account' : '/auth'} className="header-icon" aria-label={user ? 'Account' : 'Sign in'}>
+                <User className="h-5 w-5" />
               </Link>
           </div>
 
@@ -129,12 +127,12 @@ const Header = () => {
             className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute bottom-0 right-0 top-0 flex w-4/5 max-w-sm flex-col border-l border-[#e8e3e5] bg-[#fffdfd] p-6"
+            <motion.div 
+  initial={{ x: '-100%' }} 
+  animate={{ x: 0 }} 
+  exit={{ x: '-100%' }} 
+  transition={{ type: 'spring', damping: 25, stiffness: 200 }} 
+  className="absolute bottom-0 left-0 top-0 flex w-4/5 max-w-sm flex-col border-r border-[#e8e3e5] bg-[#fffdfd] p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-8">
@@ -150,7 +148,6 @@ const Header = () => {
               <div className="flex flex-col gap-4">
                 {[
                   { icon: Search, label: 'Search', path: '/products' },
-                  { icon: Heart, label: 'Wishlist', path: '/products?filter=wishlist' },
                   { icon: User, label: user ? 'My Account' : 'Sign In', path: user ? '/orders' : '/auth' },
                   { icon: Gift, label: 'Sale', path: '/products?filter=promotional' },
                   { icon: CircleHelp, label: 'Help center', path: '/faq' },

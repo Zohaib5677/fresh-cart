@@ -156,3 +156,67 @@
   background: rgba(5, 150, 105, 0.3);
   color: inherit;
 }
+
+/* Keep admin tools visually aligned with the storefront without changing their data layer. */
+.admin-shell .bg-slate-900,
+.admin-shell .bg-slate-950,
+.admin-shell .bg-slate-800,
+.admin-shell .bg-slate-700 {
+  background-color: #fffdfc !important;
+}
+
+.admin-shell .bg-slate-900\/50,
+.admin-shell .bg-slate-900\/90,
+.admin-shell .bg-slate-800\/50 {
+  background-color: #f4f0ed !important;
+}
+
+.admin-shell .border-slate-700,
+.admin-shell .border-slate-600 {
+  border-color: #e8e3e5 !important;
+}
+
+.admin-shell .text-slate-200,
+.admin-shell .text-slate-300,
+.admin-shell .text-slate-400,
+.admin-shell .text-slate-500 {
+  color: #716b70 !important;
+}
+
+.admin-shell .hover\:bg-slate-700:hover,
+.admin-shell .hover\:bg-slate-700\/50:hover {
+  background-color: #f4dfe3 !important;
+}
+
+.admin-shell .bg-emerald-500,
+.admin-shell .bg-emerald-600,
+.admin-shell .bg-green-500,
+.admin-shell .bg-primary {
+  background-color: #a35d70 !important;
+}
+
+.admin-shell .hover\:bg-emerald-600:hover,
+.admin-shell .hover\:bg-green-600:hover {
+  background-color: #8f4f60 !important;
+}
+
+.admin-shell .text-emerald-400,
+.admin-shell .text-emerald-600,
+.admin-shell .text-primary,
+.admin-shell .text-green-500,
+.admin-shell .text-blue-500,
+.admin-shell .text-yellow-500 {
+  color: #a35d70 !important;
+}
+
+.admin-shell .border-emerald-500,
+.admin-shell .border-emerald-400 {
+  border-color: #c97685 !important;
+}
+
+.admin-stat-card,
+.admin-login-card {
+  border: 1px solid #e8e3e5 !important;
+  background: #fffdfc !important;
+  box-shadow: 0 12px 30px rgba(63, 57, 62, 0.06) !important;
+}

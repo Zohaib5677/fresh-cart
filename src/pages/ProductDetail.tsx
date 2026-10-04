@@ -1,30 +1,39 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Star, Minus, Plus, ShoppingCart, Heart, Share2, Truck, ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-// @ts-ignore
-import { GlassCard, TiltEffect, AnimatedTabs, MagneticButton } from '@/components/ui/react-bits';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import ProductCard from '@/components/products/ProductCard';
-import ProductReviews from '@/components/products/ProductReviews';
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Zap } from "lucide-react";
+import {
+  Star,
+  Minus,
+  Plus,
+  ShoppingCart,
+  ShoppingBag,
+  Truck,
+  ShieldCheck,
+  ArrowLeft,
+  Loader2,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import ProductCard from "@/components/products/ProductCard";
+import ProductReviews from "@/components/products/ProductReviews";
 
-import { useProducts, useProduct } from '@/hooks/useProducts';
-import { useCartStore } from '@/stores/cartStore';
-import { useWishlist } from '@/hooks/useWishlist';
-import { toast } from 'sonner';
-import { formatPrice } from '@/lib/currency';
-import { optimizeImageUrl } from '@/lib/utils';
+import { useProducts, useProduct } from "@/hooks/useProducts";
+import { useCartStore } from "@/stores/cartStore";
+import { toast } from "sonner";
+import { formatPrice } from "@/lib/currency";
+import { optimizeImageUrl } from "@/lib/utils";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data: product, isLoading: productLoading } = useProduct(id);
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
-  
+  const [activeTab, setActiveTab] = useState("description");
+
   const addItem = useCartStore((state) => state.addItem);
-  const { isInWishlist, toggleWishlist } = useWishlist();
+  const setBuyNowItem = useCartStore((state) => state.setBuyNowItem);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -47,26 +56,33 @@ const ProductDetail = () => {
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="flex-1 container mx-auto px-6 py-24 text-center">
-          <h1 className="text-3xl font-display text-foreground mb-6">Product Not Found</h1>
-          <MagneticButton>
-            <Link to="/products" className="glass-button-primary inline-flex items-center">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Gallery
-            </Link>
-          </MagneticButton>
+          <h1 className="text-3xl font-display text-foreground mb-6">
+            Product Not Found
+          </h1>
+          <Link
+            to="/products"
+            className="inline-flex items-center bg-[#242024] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-white transition-transform hover:-translate-y-0.5"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Gallery
+          </Link>
         </main>
         <Footer />
       </div>
     );
   }
 
-  const isWishlisted = isInWishlist(product.id);
-
   const handleAddToCart = () => {
     addItem(product, quantity);
     toast.success(`${product.name} added to cart`, {
-      className: 'glass !bg-background/80 !border-emerald-500/30 !text-foreground',
+      className:
+        "glass !bg-background/80 !border-emerald-500/30 !text-foreground",
     });
+  };
+
+  const handleBuyNow = () => {
+    setBuyNowItem(product, quantity);
+    navigate("/checkout");
   };
 
   const relatedProducts = products
@@ -74,155 +90,169 @@ const ProductDetail = () => {
     .slice(0, 4);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative selection:bg-emerald-500/30">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/20 via-background to-background pointer-events-none" />
+    <div className="min-h-screen flex flex-col bg-[#fffdfc] selection:bg-[#d9e7e3]">
       <Header />
 
-      <main className="flex-1 pt-24 relative z-10">
-        <div className="container mx-auto px-6 py-8">
+      <main className="flex-1 pt-16 md:pt-24">
+        <div className="mx-auto max-w-[1280px] px-4 py-4 md:px-6 md:py-5">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-[10px] text-foreground/40 uppercase tracking-widest font-bold mb-12">
-            <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
+          <nav className="mb-4 flex items-center gap-1.5 text-[8px] font-semibold uppercase tracking-[0.12em] text-[#9a9298]">
+            <Link to="/" className="transition-colors hover:text-[#a35d70]">
+              Home
+            </Link>
             <span>/</span>
-            <Link to="/products" className="hover:text-foreground transition-colors">Gallery</Link>
+            <Link
+              to="/products"
+              className="transition-colors hover:text-[#a35d70]"
+            >
+              Shop
+            </Link>
             <span>/</span>
-            <Link to={`/products?category=${product.category}`} className="hover:text-foreground transition-colors">
+            <Link
+              to={`/products?category=${product.category}`}
+              className="transition-colors hover:text-[#a35d70]"
+            >
               {product.category}
             </Link>
           </nav>
 
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 mb-24">
-            {/* Image Gallery */}
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] lg:gap-6">
+            {" "}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               className="relative"
             >
-              <TiltEffect>
-                <div className="aspect-square glass bg-foreground/[0.02] rounded-3xl flex items-center justify-center p-12 overflow-hidden relative group">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <img
-                    src={optimizeImageUrl(product.imageUrl, 600, 65)}
-                    alt={product.name}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-contain drop-shadow-2xl dark:mix-blend-screen mix-blend-multiply relative z-10"
-                  />
-                  
-                  {/* Badges */}
-                  <div className="absolute top-6 left-6 flex flex-col gap-2 z-20">
-                    {product.isExclusive && (
-                      <span className="glass px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 border-emerald-500/20 bg-emerald-500/10">
-                        Exclusive
-                      </span>
-                    )}
-                  </div>
+              <div className="group relative flex aspect-[1.3] items-center justify-center overflow-hidden bg-[#fffdfc] p-0">
+                {" "}
+                <img
+                  src={optimizeImageUrl(product.imageUrl, 600, 65)}
+                  alt={product.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="relative z-10 h-[68%] w-[68%] object-contain mix-blend-multiply drop-shadow-2xl transition-transform duration-700 group-hover:scale-105 md:h-[72%] md:w-[72%]"
+                />
+                {/* Badges */}
+                <div className="absolute left-5 top-5 z-20 flex flex-col gap-2">
+                  {product.isExclusive && (
+                    <span className="bg-[#242024] px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-white">
+                      Exclusive
+                    </span>
+                  )}
                 </div>
-              </TiltEffect>
+              </div>
             </motion.div>
-
             {/* Product Details */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-col pt-4"
+              className="flex flex-col justify-center py-0 lg:py-2"
             >
-              <div className="glass inline-flex px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/50 mb-6 border-foreground/[0.1] self-start">
+              <div className="mb-2 inline-flex self-start bg-[#f4f0ed] px-2.5 py-1.5 text-[8px] font-semibold uppercase tracking-[0.16em] text-[#a35d70]">
                 {product.category}
               </div>
 
-              <h1 className="font-display text-4xl lg:text-5xl text-foreground leading-[1.1] mb-6">
+              <h1 className="mb-2 max-w-xl font-serif text-3xl leading-none text-[#242024] md:text-5xl">
                 {product.name}
               </h1>
 
-              <div className="flex items-center gap-3 mb-8">
+              <div className="mb-3 flex items-center gap-2">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-4 w-4 ${
+                      className={`h-3 w-3 ${
                         i < Math.floor(product.rating)
-                          ? 'fill-amber-500 text-amber-500'
-                          : 'fill-white/10 text-foreground/10'
+                          ? "fill-amber-500 text-amber-500"
+                          : "fill-[#eee9eb] text-[#d8cfd3]"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm font-medium text-foreground">{product.rating}</span>
-                <span className="text-sm text-foreground/40">({product.reviewCount} reviews)</span>
+                <span className="text-xs font-medium text-[#3f393e]">
+                  {product.rating}
+                </span>
+                <span className="text-xs text-[#9a9298]">
+                  ({product.reviewCount} reviews)
+                </span>
               </div>
 
-              <div className="flex items-end gap-4 mb-8">
-                <span className="text-4xl font-bold text-gradient-accent">
+              <div className="mb-4 flex items-end gap-3">
+                <span className="text-2xl font-semibold text-[#c05f70] md:text-3xl">
                   {formatPrice(product.price)}
                 </span>
                 {product.originalPrice && (
-                  <span className="text-xl text-foreground/30 line-through mb-1">
+                  <span className="mb-0.5 text-sm text-[#9a9298] line-through">
                     {formatPrice(product.originalPrice)}
                   </span>
                 )}
               </div>
 
-              <GlassCard className="p-6 mb-8 bg-foreground/[0.02]">
-                <div className="flex items-center justify-between mb-6 pb-6 border-b border-foreground/[0.06]">
-                  <span className="text-sm text-foreground/60">Quantity</span>
-                  <div className="flex items-center glass rounded-full h-10 w-32 justify-between px-2">
+              <div className="mb-4 bg-[#f4f0ed] p-3 md:p-4">
+                <div className="mb-3 flex items-center justify-between border-b border-[#e3dadd] pb-3">
+                  <span className="text-xs text-[#777077]">Quantity</span>
+                  <div className="flex h-8 w-24 items-center justify-between border border-[#d8cfd3] bg-white px-1">
                     <button
-                      className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-foreground/[0.1] text-foreground transition-colors"
+                      className="flex h-6 w-6 items-center justify-center text-[#3f393e] transition-colors hover:bg-[#eee9eb]"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </button>
-                    <span className="font-medium text-foreground">{quantity}</span>
+                    <span className="text-xs font-medium text-[#3f393e]">
+                      {quantity}
+                    </span>
                     <button
-                      className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-foreground/[0.1] text-foreground transition-colors"
+                      className="flex h-6 w-6 items-center justify-center text-[#3f393e] transition-colors hover:bg-[#eee9eb]"
                       onClick={() => setQuantity(quantity + 1)}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </button>
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <MagneticButton className="flex-1">
-                    <button
-                      className="w-full glass-button-primary h-12 flex justify-center items-center gap-2"
-                      onClick={handleAddToCart}
-                      disabled={product.stockQuantity === 0}
-                    >
-                      <ShoppingCart className="h-5 w-5" />
-                      Add to Cart
-                    </button>
-                  </MagneticButton>
-                  <MagneticButton>
-                    <button 
-                      onClick={() => toggleWishlist(product.id)}
-                      className={`h-12 w-12 rounded-full flex items-center justify-center transition-all ${
-                        isWishlisted ? 'glass bg-rose-500/20 text-rose-400 border-rose-500/30' : 'glass hover:bg-foreground/[0.1] text-foreground/70 hover:text-rose-400'
-                      }`}
-                    >
-                      <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
-                    </button>
-                  </MagneticButton>
+                <div className="flex gap-2">
+                  <button
+                    className="flex h-9 w-full items-center justify-center gap-1.5 bg-[#a35d70] text-[9px] font-semibold uppercase tracking-[0.08em] text-white transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={handleBuyNow}
+                    disabled={product.stockQuantity === 0}
+                  >
+                    <ShoppingBag className="h-3.5 w-3.5" /> Buy Now
+                  </button>
+                  <button
+                    className="flex h-9 w-full items-center justify-center gap-1.5 bg-[#242024] text-[9px] font-semibold uppercase tracking-[0.08em] text-white transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={handleAddToCart}
+                    disabled={product.stockQuantity === 0}
+                  >
+                    <ShoppingCart className="h-3.5 w-3.5" />
+                    Add to Cart
+                  </button>
                 </div>
-              </GlassCard>
+              </div>
 
               {/* Badges */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="glass p-4 flex items-center gap-4">
-                  <Truck className="h-5 w-5 text-emerald-400" />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center gap-2 border-t border-[#e8e3e5] pt-2.5">
+                  <Truck className="h-4 w-4 text-[#a35d70]" />
                   <div>
-                    <div className="text-xs font-bold text-foreground mb-0.5">Free Delivery</div>
-                    <div className="text-[10px] text-foreground/50">On orders above Rs.500</div>
+                    <div className="mb-0.5 text-[10px] font-bold text-[#3f393e]">
+                      Free Delivery
+                    </div>
+                    <div className="text-[9px] text-[#9a9298]">
+                      On orders above Rs.500
+                    </div>
                   </div>
                 </div>
-                <div className="glass p-4 flex items-center gap-4">
-                  <ShieldCheck className="h-5 w-5 text-emerald-400" />
+                <div className="flex items-center gap-2 border-t border-[#e8e3e5] pt-2.5">
+                  <ShieldCheck className="h-4 w-4 text-[#a35d70]" />
                   <div>
-                    <div className="text-xs font-bold text-foreground mb-0.5">Secure Checkout</div>
-                    <div className="text-[10px] text-foreground/50">100% Protected</div>
+                    <div className="mb-0.5 text-[10px] font-bold text-[#3f393e]">
+                      Secure Checkout
+                    </div>
+                    <div className="text-[9px] text-[#9a9298]">
+                      100% Protected
+                    </div>
                   </div>
                 </div>
               </div>
@@ -230,57 +260,79 @@ const ProductDetail = () => {
           </div>
 
           {/* Tabs */}
-          <div className="max-w-4xl mx-auto mb-32">
-            <div className="flex border-b border-foreground/[0.08] mb-8">
+          <div className="mx-auto mb-16 mt-12 max-w-4xl">
+            <div className="mb-4 flex border-b border-[#e8e3e5]">
               <button
-                className={`pb-4 px-6 text-sm font-medium transition-colors relative ${
-                  activeTab === 'description' ? 'text-emerald-400' : 'text-foreground/40 hover:text-foreground'
+                className={`relative px-4 pb-2.5 text-xs font-medium transition-colors ${
+                  activeTab === "description"
+                    ? "text-[#a35d70]"
+                    : "text-[#9a9298] hover:text-[#3f393e]"
                 }`}
-                onClick={() => setActiveTab('description')}
+                onClick={() => setActiveTab("description")}
               >
                 Description
-                {activeTab === 'description' && (
-                  <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                {activeTab === "description" && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#c97685]"
+                  />
                 )}
               </button>
               <button
-                className={`pb-4 px-6 text-sm font-medium transition-colors relative ${
-                  activeTab === 'reviews' ? 'text-emerald-400' : 'text-foreground/40 hover:text-foreground'
+                className={`relative px-4 pb-2.5 text-xs font-medium transition-colors ${
+                  activeTab === "reviews"
+                    ? "text-[#a35d70]"
+                    : "text-[#9a9298] hover:text-[#3f393e]"
                 }`}
-                onClick={() => setActiveTab('reviews')}
+                onClick={() => setActiveTab("reviews")}
               >
                 Reviews ({product.reviewCount})
-                {activeTab === 'reviews' && (
-                  <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                {activeTab === "reviews" && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#c97685]"
+                  />
                 )}
               </button>
             </div>
 
             <AnimatePresence mode="wait">
-              {activeTab === 'description' ? (
+              {activeTab === "description" ? (
                 <motion.div
                   key="description"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="text-foreground/70 leading-relaxed"
+                  className="leading-relaxed text-[#5f595d]"
                 >
-                  <p className="mb-8">{product.description}</p>
-                  
-                  <h3 className="font-display text-2xl text-foreground mb-6">Specifications</h3>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <GlassCard className="p-4 flex justify-between">
-                      <span className="text-foreground/40 text-sm">Weight/Quantity</span>
-                      <span className="font-medium text-foreground text-sm">{product.unit}</span>
-                    </GlassCard>
-                    <GlassCard className="p-4 flex justify-between">
-                      <span className="text-foreground/40 text-sm">Category</span>
-                      <span className="font-medium text-foreground text-sm capitalize">{product.category}</span>
-                    </GlassCard>
-                    <GlassCard className="p-4 flex justify-between">
-                      <span className="text-foreground/40 text-sm">Stock Available</span>
-                      <span className="font-medium text-foreground text-sm">{product.stockQuantity} units</span>
-                    </GlassCard>
+                  <p className="mb-4 text-xs leading-5">{product.description}</p>
+
+                  <h3 className="mb-3 font-serif text-2xl text-[#242024]">
+                    Specifications
+                  </h3>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="flex justify-between border-t border-[#e8e3e5] p-2.5">
+                      <span className="text-xs text-[#9a9298]">
+                        Weight/Quantity
+                      </span>
+                      <span className="text-xs font-medium text-[#3f393e]">
+                        {product.unit}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-t border-[#e8e3e5] p-2.5">
+                      <span className="text-xs text-[#9a9298]">Category</span>
+                      <span className="text-xs font-medium capitalize text-[#3f393e]">
+                        {product.category}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-t border-[#e8e3e5] p-2.5">
+                      <span className="text-xs text-[#9a9298]">
+                        Stock Available
+                      </span>
+                      <span className="text-xs font-medium text-[#3f393e]">
+                        {product.stockQuantity} units
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
               ) : (
@@ -298,11 +350,11 @@ const ProductDetail = () => {
 
           {/* Related Products */}
           {relatedProducts.length > 0 && (
-            <section className="pt-20 border-t border-foreground/[0.08]">
-              <h2 className="font-display text-4xl text-foreground mb-10 text-center">
+            <section className="border-t border-[#e8e3e5] pt-12">
+              <h2 className="mb-6 text-center font-serif text-3xl text-[#242024]">
                 More from this collection
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {relatedProducts.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
@@ -313,16 +365,14 @@ const ProductDetail = () => {
       </main>
 
       {/* Floating Mobile CTA */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 z-40 bg-gradient-to-t from-black via-black/80 to-transparent pt-12 pb-safe">
-        <MagneticButton>
-          <button
-            onClick={handleAddToCart}
-            disabled={product.stockQuantity === 0}
-            className="w-full glass-button-primary h-14 text-lg"
-          >
-            Add to Cart - {formatPrice(product.price)}
-          </button>
-        </MagneticButton>
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#242024] via-[#242024]/90 to-transparent p-4 pb-safe pt-12 md:hidden">
+        <button
+          onClick={handleAddToCart}
+          disabled={product.stockQuantity === 0}
+          className="h-14 w-full bg-white text-sm font-semibold uppercase tracking-[0.08em] text-[#242024] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Add to Cart - {formatPrice(product.price)}
+        </button>
       </div>
 
       <Footer />
@@ -331,3 +381,13 @@ const ProductDetail = () => {
 };
 
 export default ProductDetail;
+
+
+
+
+
+
+
+
+
+

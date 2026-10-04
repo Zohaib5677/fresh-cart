@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, ArrowLeft, ArrowRight, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-// @ts-ignore
-import { GlassCard, MagneticButton, AnimatedCounter, GlassSurface } from '@/components/ui/react-bits';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { useCartStore } from '@/stores/cartStore';
@@ -16,19 +14,18 @@ const Cart = () => {
   const progressToFreeShipping = Math.min((subtotal / 1000) * 100, 100);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative selection:bg-emerald-500/30">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-900/10 via-background to-background pointer-events-none" />
+    <div className="min-h-screen flex flex-col bg-[#fffdfc] selection:bg-[#d9e7e3]">
       <Header />
 
-      <main className="flex-1 pt-32 pb-24 relative z-10">
-        <div className="container mx-auto px-6 max-w-6xl">
+      <main className="flex-1 pb-24 pt-36 md:pt-40">
+        <div className="mx-auto max-w-[1200px] px-4 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 mb-10"
+            className="mb-10 flex items-center gap-3"
           >
-            <h1 className="font-display text-4xl text-foreground">Your Cart</h1>
-            <span className="glass px-3 py-1 text-sm font-medium text-emerald-400 bg-emerald-500/10 border-emerald-500/20">
+            <h1 className="font-serif text-4xl text-[#242024] md:text-5xl">Your Cart</h1>
+            <span className="bg-[#f4f0ed] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a35d70]">
               {items.length} {items.length === 1 ? 'item' : 'items'}
             </span>
           </motion.div>
@@ -37,23 +34,21 @@ const Cart = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="py-20 flex flex-col items-center justify-center text-center max-w-md mx-auto"
+              className="mx-auto flex max-w-md flex-col items-center justify-center py-20 text-center"
             >
-              <div className="w-24 h-24 mb-8 glass rounded-full bg-foreground/[0.02] flex items-center justify-center text-foreground/20">
+              <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-[#f4f0ed] text-[#c7bdc1]">
                 <ShoppingBag className="h-10 w-10" />
               </div>
-              <h2 className="text-2xl font-display text-foreground mb-4">Your cart is empty</h2>
-              <p className="text-foreground/50 mb-8">
+              <h2 className="mb-4 font-serif text-3xl text-[#242024]">Your cart is empty</h2>
+              <p className="mb-8 text-sm leading-relaxed text-[#777077]">
                 Looks like you haven't added anything to your cart yet. Discover our premium collection.
               </p>
-              <MagneticButton>
-                <Link to="/products" className="glass-button-primary">
+              <Link to="/products" className="bg-[#242024] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-white transition-transform hover:-translate-y-0.5">
                   Explore Products
-                </Link>
-              </MagneticButton>
+              </Link>
             </motion.div>
           ) : (
-            <div className="grid lg:grid-cols-[1fr_400px] gap-12">
+            <div className="grid gap-12 lg:grid-cols-[1fr_380px]">
               <div className="space-y-4">
                 <AnimatePresence initial={false}>
                   {items.map((item, index) => (
@@ -64,44 +59,44 @@ const Cart = () => {
                       exit={{ opacity: 0, x: -20, scale: 0.95 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <GlassCard className="p-4 flex gap-6 group hover:bg-foreground/[0.05] transition-colors">
-                        <Link to={`/product/${item.product.id}`} className="relative h-24 w-24 rounded-2xl glass bg-foreground/[0.02] overflow-hidden flex-shrink-0 p-2">
+                      <div className="group flex gap-4 border-t border-[#e8e3e5] py-5 md:gap-6">
+                        <Link to={`/product/${item.product.id}`} className="relative h-24 w-24 shrink-0 overflow-hidden bg-[#f4f0ed] p-2">
                           <img
                             src={item.product.imageUrl}
                             alt={item.product.name}
-                            className="w-full h-full object-contain mix-blend-screen group-hover:scale-110 transition-transform duration-500"
+                            className="h-full w-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
                           />
                         </Link>
                         
                         <div className="flex-1 flex flex-col justify-between py-1">
                           <div className="flex justify-between gap-4">
                             <div>
-                              <Link to={`/product/${item.product.id}`} className="font-medium text-foreground hover:text-emerald-400 transition-colors line-clamp-1">
+                              <Link to={`/product/${item.product.id}`} className="line-clamp-1 font-medium text-[#3f393e] transition-colors hover:text-[#a35d70]">
                                 {item.product.name}
                               </Link>
-                              <div className="text-xs font-bold text-foreground/30 uppercase tracking-widest mt-1">
+                              <div className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#9a9298]">
                                 {item.product.category}
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="font-bold text-gradient-accent">
+                              <div className="font-semibold text-[#c05f70]">
                                 {formatPrice(item.product.price)}
                               </div>
                             </div>
                           </div>
 
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center glass rounded-full h-9 w-28 justify-between px-1">
+                            <div className="flex h-9 w-28 items-center justify-between border border-[#d8cfd3] bg-white px-1">
                               <button
-                                className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-foreground/[0.1] text-foreground transition-colors disabled:opacity-50"
+                                className="flex h-7 w-7 items-center justify-center text-[#3f393e] transition-colors hover:bg-[#eee9eb] disabled:opacity-50"
                                 onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                                 disabled={item.quantity <= 1}
                               >
                                 <Minus className="h-3 w-3" />
                               </button>
-                              <span className="font-medium text-foreground text-sm">{item.quantity}</span>
+                              <span className="text-sm font-medium text-[#3f393e]">{item.quantity}</span>
                               <button
-                                className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-foreground/[0.1] text-foreground transition-colors"
+                                className="flex h-7 w-7 items-center justify-center text-[#3f393e] transition-colors hover:bg-[#eee9eb]"
                                 onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                               >
                                 <Plus className="h-3 w-3" />
@@ -110,13 +105,13 @@ const Cart = () => {
                             
                             <button
                               onClick={() => removeItem(item.product.id)}
-                              className="w-9 h-9 rounded-full flex items-center justify-center text-foreground/30 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                              className="flex h-9 w-9 items-center justify-center text-[#9a9298] transition-colors hover:bg-[#f4dfe3] hover:text-[#c05f70]"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
-                      </GlassCard>
+                      </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -126,7 +121,7 @@ const Cart = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <Link to="/products" className="inline-flex items-center text-sm font-medium text-foreground/50 hover:text-emerald-400 transition-colors mt-4">
+                  <Link to="/products" className="mt-4 inline-flex items-center text-sm font-medium text-[#777077] transition-colors hover:text-[#a35d70]">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Continue Shopping
                   </Link>
@@ -138,70 +133,64 @@ const Cart = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="lg:sticky lg:top-32 h-fit"
+                className="h-fit lg:sticky lg:top-36"
               >
-                <GlassSurface className="p-8 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-3xl pointer-events-none" />
-                  
-                  <h3 className="font-display text-2xl text-foreground mb-6">Order Summary</h3>
+                <div className="bg-[#f4f0ed] p-6 md:p-8">
+                  <h3 className="mb-6 font-serif text-3xl text-[#242024]">Order Summary</h3>
 
                   {/* Free Shipping Progress */}
-                  <div className="mb-8 p-4 glass bg-foreground/[0.02] border-foreground/[0.05]">
-                    <div className="flex justify-between text-sm mb-3">
-                      <span className="text-foreground/70 font-medium">Free Shipping Progress</span>
-                      <span className="text-emerald-400 font-bold">{Math.round(progressToFreeShipping)}%</span>
+                  <div className="mb-8 border-t border-[#e3dadd] pt-4">
+                    <div className="mb-3 flex justify-between text-sm">
+                      <span className="font-medium text-[#5f595d]">Free Shipping Progress</span>
+                      <span className="font-bold text-[#a35d70]">{Math.round(progressToFreeShipping)}%</span>
                     </div>
-                    <div className="h-1.5 w-full bg-foreground/[0.05] rounded-full overflow-hidden mb-2">
+                    <div className="mb-2 h-1.5 w-full overflow-hidden bg-white">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${progressToFreeShipping}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]"
+                        className="h-full bg-[#c97685]"
                       />
                     </div>
                     {subtotal >= 1000 ? (
-                      <p className="text-xs text-emerald-400">You've unlocked free shipping!</p>
+                      <p className="text-xs text-[#a35d70]">You've unlocked free shipping!</p>
                     ) : (
-                      <p className="text-xs text-foreground/40">
-                        Add <span className="text-foreground">Rs. {1000 - subtotal}</span> more for free shipping
+                      <p className="text-xs text-[#9a9298]">
+                        Add <span className="text-[#3f393e]">Rs. {1000 - subtotal}</span> more for free shipping
                       </p>
                     )}
                   </div>
 
-                  <div className="space-y-4 mb-6 text-sm text-foreground/70">
+                  <div className="mb-6 space-y-4 text-sm text-[#777077]">
                     <div className="flex justify-between">
                       <span>Subtotal</span>
-                      <span className="font-medium text-foreground">
-                        <AnimatedCounter from={0} to={subtotal} format={(val) => `Rs. ${val.toFixed(2)}`} />
-                      </span>
+                      <span className="font-medium text-[#3f393e]">{formatPrice(subtotal)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shipping</span>
-                      <span className="font-medium text-foreground">
-                        {shipping === 0 ? <span className="text-emerald-400">Free</span> : `Rs. ${shipping.toFixed(2)}`}
+                      <span className="font-medium text-[#3f393e]">
+                        {shipping === 0 ? <span className="text-[#a35d70]">Free</span> : formatPrice(shipping)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="border-t border-foreground/[0.08] pt-6 mb-8">
-                    <div className="flex justify-between items-end">
-                      <span className="text-foreground font-medium">Total</span>
-                      <span className="font-display text-3xl font-bold text-gradient-accent">
-                        <AnimatedCounter from={0} to={total} format={(val) => `Rs. ${val.toFixed(2)}`} />
+                  <div className="mb-8 border-t border-[#e3dadd] pt-6">
+                    <div className="flex items-end justify-between">
+                      <span className="font-medium text-[#3f393e]">Total</span>
+                      <span className="font-serif text-3xl text-[#c05f70]">
+                        {formatPrice(total)}
                       </span>
                     </div>
-                    <p className="text-[10px] text-foreground/40 uppercase tracking-widest mt-2 text-right">
+                    <p className="mt-2 text-right text-[10px] uppercase tracking-widest text-[#9a9298]">
                       Including all taxes
                     </p>
                   </div>
 
-                  <MagneticButton>
-                    <Link to="/checkout" className="w-full glass-button-primary flex justify-center items-center h-14 text-base">
+                  <Link to="/checkout" className="flex h-14 w-full items-center justify-center bg-[#242024] text-[10px] font-semibold uppercase tracking-[0.1em] text-white transition-transform hover:-translate-y-0.5">
                       Proceed to Checkout
                       <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                  </MagneticButton>
-                </GlassSurface>
+                  </Link>
+                </div>
               </motion.div>
             </div>
           )}

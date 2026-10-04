@@ -2,8 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, ShieldCheck, Check, Copy, Upload, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-// @ts-ignore
-import { GlassCard, MagneticButton } from '@/components/ui/react-bits';
 import { useCartStore } from '@/stores/cartStore';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,7 +34,8 @@ const isUuid = (value: string) =>
 
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const { items, getTotalPrice, clearCart } = useCartStore();
+  const { items, buyNowItems, clearCart, clearBuyNowItems } = useCartStore();
+  const checkoutItems = buyNowItems ?? items;
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -58,12 +57,16 @@ const Checkout = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (items.length === 0 && !isSubmitting) {
+    if (checkoutItems.length === 0 && !isSubmitting) {
       navigate('/cart', { replace: true });
     }
-  }, [items.length, navigate, isSubmitting]);
+  }, [checkoutItems.length, navigate, isSubmitting]);
 
-  const subtotal = getTotalPrice();
+  useEffect(() => {
+    return () => clearBuyNowItems();
+  }, [clearBuyNowItems]);
+
+  const subtotal = checkoutItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
   const shipping = subtotal > 0 ? (subtotal >= 1000 ? 0 : 150) : 0;
   const total = subtotal + shipping;
 
@@ -108,11 +111,11 @@ const Checkout = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard!', { className: 'glass !bg-background/80 !border-emerald-500/30 !text-foreground' });
+    toast.success('Copied to clipboard!', { className: '!bg-[#fffdfc] !border-[#c97685] !text-[#3f393e]' });
   };
 
   const placeOrder = async () => {
-    if (items.length === 0) return;
+    if (checkoutItems.length === 0) return;
     setIsSubmitting(true);
 
     try {
@@ -127,7 +130,7 @@ const Checkout = () => {
           .upload(fileName, paymentScreenshot);
 
         if (uploadError) {
-          console.warn('Screenshot upload warning:', uploadError);
+          throw new Error(`Payment screenshot upload failed: ${uploadError.message}`);
         } else if (uploadData) {
           paymentScreenshotUrl = fileName;
         }
@@ -181,7 +184,7 @@ const Checkout = () => {
       }
 
       // 4. Insert into `order_items` table
-      const orderItemsToInsert = items.map((item) => ({
+      const orderItemsToInsert = checkoutItems.map((item) => ({
         order_id: order!.id,
         product_id: isUuid(item.product.id) ? item.product.id : null,
         product_name: item.product.name,
@@ -209,8 +212,12 @@ const Checkout = () => {
       }
 
       // 6. Complete Order
-      clearCart();
-      toast.success('Order placed successfully!', { className: 'glass !bg-background/80 !border-emerald-500/30 !text-foreground' });
+      if (buyNowItems) {
+        clearBuyNowItems();
+      } else {
+        clearCart();
+      }
+      toast.success('Order placed successfully!', { className: '!bg-[#fffdfc] !border-[#c97685] !text-[#3f393e]' });
       navigate(`/orders/${order.id}`, { replace: true });
     } catch (error: any) {
       console.error('Order placement error:', error);
@@ -221,41 +228,40 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative selection:bg-emerald-500/30 flex flex-col">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/10 via-background to-background pointer-events-none" />
+    <div className="flex min-h-screen flex-col bg-[#fffdfc] selection:bg-[#d9e7e3]">
 
-      <header className="relative z-10 glass rounded-none border-b border-foreground/[0.06] bg-background/60 py-4">
-        <div className="container mx-auto px-6 flex items-center justify-between">
-          <Link to="/" className="font-display text-2xl font-bold tracking-tight text-gradient">
-            SnapCart
+      <header className="border-b border-[#eee9eb] bg-white/95 py-4">
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 md:px-8">
+          <Link to="/" className="font-serif text-2xl tracking-[0.08em] text-[#242024]">
+            HAMAASH
           </Link>
-          <div className="flex items-center gap-2 text-foreground/50 text-sm font-medium">
-            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+          <div className="flex items-center gap-2 text-sm font-medium text-[#777077]">
+            <ShieldCheck className="h-4 w-4 text-[#a35d70]" />
             Secure Checkout
           </div>
         </div>
       </header>
 
-      <main className="flex-1 relative z-10 py-12 lg:py-20">
-        <div className="container mx-auto px-6 max-w-5xl">
+      <main className="flex-1 py-12 lg:py-16">
+        <div className="mx-auto max-w-[1100px] px-4 md:px-8">
           
-          <div className="mb-12 max-w-2xl mx-auto">
-            <div className="flex items-center justify-between relative">
-              <div className="absolute top-1/2 left-0 w-full h-[1px] bg-foreground/[0.08] -translate-y-1/2 z-0" />
-              <div className="absolute top-1/2 left-0 h-[2px] bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)] -translate-y-1/2 z-0 transition-all duration-500" style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }} />
+          <div className="mx-auto mb-12 max-w-2xl">
+            <div className="relative flex items-center justify-between">
+              <div className="absolute left-0 top-1/2 z-0 h-px w-full -translate-y-1/2 bg-[#e8e3e5]" />
+              <div className="absolute left-0 top-1/2 z-0 h-0.5 -translate-y-1/2 bg-[#c97685] transition-all duration-500" style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }} />
               
               {steps.map((step) => (
-                <div key={step.id} className="relative z-10 flex flex-col items-center gap-2">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${currentStep >= step.id ? 'bg-emerald-500 text-foreground shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'glass bg-background text-foreground/40'}`}>
+                <div key={step.id} className="relative z-10 flex flex-col items-center gap-2 bg-[#fffdfc] px-2">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-500 ${currentStep >= step.id ? 'border-[#c97685] bg-[#c97685] text-white' : 'border-[#d8cfd3] bg-white text-[#9a9298]'}`}>
                     {currentStep > step.id ? <Check className="h-5 w-5" /> : <span className="font-bold text-sm">{step.id}</span>}
                   </div>
-                  <span className={`text-[10px] uppercase tracking-widest font-bold ${currentStep >= step.id ? 'text-emerald-400' : 'text-foreground/40'}`}>{step.name}</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${currentStep >= step.id ? 'text-[#a35d70]' : 'text-[#9a9298]'}`}>{step.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-[1fr_400px] gap-12">
+          <div className="grid gap-12 lg:grid-cols-[1fr_380px]">
             
             {/* Main Form Area */}
             <div className="space-y-6">
@@ -267,39 +273,39 @@ const Checkout = () => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                   >
-                    <GlassCard className="p-8">
-                      <h2 className="text-2xl font-display text-foreground mb-8">Shipping Information</h2>
-                      <div className="grid md:grid-cols-2 gap-6">
+                    <div className="border-t border-[#e8e3e5] bg-white p-6 md:p-8">
+                      <h2 className="mb-8 font-serif text-3xl text-[#242024]">Shipping Information</h2>
+                      <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
-                          <label className="text-[10px] uppercase tracking-widest font-bold text-foreground/50">First Name *</label>
-                          <input name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full glass bg-foreground/[0.02] border-foreground/[0.08] rounded-xl h-12 px-4 text-foreground focus:outline-none focus:border-emerald-500/50" />
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#777077]">First Name *</label>
+                          <input name="firstName" value={formData.firstName} onChange={handleInputChange} className="h-12 w-full border border-[#d8cfd3] bg-[#fffdfc] px-4 text-[#3f393e] outline-none transition-colors focus:border-[#c97685]" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] uppercase tracking-widest font-bold text-foreground/50">Last Name *</label>
-                          <input name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full glass bg-foreground/[0.02] border-foreground/[0.08] rounded-xl h-12 px-4 text-foreground focus:outline-none focus:border-emerald-500/50" />
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#777077]">Last Name *</label>
+                          <input name="lastName" value={formData.lastName} onChange={handleInputChange} className="h-12 w-full border border-[#d8cfd3] bg-[#fffdfc] px-4 text-[#3f393e] outline-none transition-colors focus:border-[#c97685]" />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                          <label className="text-[10px] uppercase tracking-widest font-bold text-foreground/50">Email Address *</label>
-                          <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full glass bg-foreground/[0.02] border-foreground/[0.08] rounded-xl h-12 px-4 text-foreground focus:outline-none focus:border-emerald-500/50" />
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#777077]">Email Address *</label>
+                          <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="h-12 w-full border border-[#d8cfd3] bg-[#fffdfc] px-4 text-[#3f393e] outline-none transition-colors focus:border-[#c97685]" />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                          <label className="text-[10px] uppercase tracking-widest font-bold text-foreground/50">Phone Number *</label>
-                          <input name="phone" value={formData.phone} onChange={handleInputChange} className="w-full glass bg-foreground/[0.02] border-foreground/[0.08] rounded-xl h-12 px-4 text-foreground focus:outline-none focus:border-emerald-500/50" />
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#777077]">Phone Number *</label>
+                          <input name="phone" value={formData.phone} onChange={handleInputChange} className="h-12 w-full border border-[#d8cfd3] bg-[#fffdfc] px-4 text-[#3f393e] outline-none transition-colors focus:border-[#c97685]" />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                          <label className="text-[10px] uppercase tracking-widest font-bold text-foreground/50">Street Address *</label>
-                          <input name="address" value={formData.address} onChange={handleInputChange} className="w-full glass bg-foreground/[0.02] border-foreground/[0.08] rounded-xl h-12 px-4 text-foreground focus:outline-none focus:border-emerald-500/50" />
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#777077]">Street Address *</label>
+                          <input name="address" value={formData.address} onChange={handleInputChange} className="h-12 w-full border border-[#d8cfd3] bg-[#fffdfc] px-4 text-[#3f393e] outline-none transition-colors focus:border-[#c97685]" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] uppercase tracking-widest font-bold text-foreground/50">City *</label>
-                          <input name="city" value={formData.city} onChange={handleInputChange} className="w-full glass bg-foreground/[0.02] border-foreground/[0.08] rounded-xl h-12 px-4 text-foreground focus:outline-none focus:border-emerald-500/50" />
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#777077]">City *</label>
+                          <input name="city" value={formData.city} onChange={handleInputChange} className="h-12 w-full border border-[#d8cfd3] bg-[#fffdfc] px-4 text-[#3f393e] outline-none transition-colors focus:border-[#c97685]" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] uppercase tracking-widest font-bold text-foreground/50">Zip Code</label>
-                          <input name="zipCode" value={formData.zipCode} onChange={handleInputChange} className="w-full glass bg-foreground/[0.02] border-foreground/[0.08] rounded-xl h-12 px-4 text-foreground focus:outline-none focus:border-emerald-500/50" />
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#777077]">Zip Code</label>
+                          <input name="zipCode" value={formData.zipCode} onChange={handleInputChange} className="h-12 w-full border border-[#d8cfd3] bg-[#fffdfc] px-4 text-[#3f393e] outline-none transition-colors focus:border-[#c97685]" />
                         </div>
                       </div>
-                    </GlassCard>
+                    </div>
                   </motion.div>
                 )}
 
@@ -310,9 +316,9 @@ const Checkout = () => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                   >
-                    <GlassCard className="p-8">
-                      <h2 className="text-2xl font-display text-foreground mb-8">Payment Method</h2>
-                      <div className="grid gap-4 mb-8">
+                    <div className="border-t border-[#e8e3e5] bg-white p-6 md:p-8">
+                      <h2 className="mb-8 font-serif text-3xl text-[#242024]">Payment Method</h2>
+                      <div className="mb-8 grid gap-3">
                         {[
                           { id: 'cod', name: 'Cash on Delivery', desc: 'Pay when you receive' },
                           { id: 'jazzcash', name: 'JazzCash', desc: 'Instant mobile transfer' },
@@ -322,15 +328,15 @@ const Checkout = () => {
                           <div 
                             key={method.id}
                             onClick={() => setPaymentMethod(method.id as any)}
-                            className={`glass p-4 cursor-pointer transition-all ${paymentMethod === method.id ? 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'hover:bg-foreground/[0.05]'}`}
+                            className={`cursor-pointer border p-4 transition-all ${paymentMethod === method.id ? 'border-[#c97685] bg-[#f4dfe3]' : 'border-[#e8e3e5] hover:border-[#d8cfd3] hover:bg-[#fffdfc]'}`}
                           >
                             <div className="flex items-center gap-4">
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === method.id ? 'border-emerald-400' : 'border-foreground/30'}`}>
-                                {paymentMethod === method.id && <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full" />}
+                              <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${paymentMethod === method.id ? 'border-[#c97685]' : 'border-[#d8cfd3]'}`}>
+                                {paymentMethod === method.id && <div className="h-2.5 w-2.5 rounded-full bg-[#c97685]" />}
                               </div>
                               <div>
-                                <div className="font-bold text-foreground text-sm">{method.name}</div>
-                                <div className="text-[10px] text-foreground/50 uppercase tracking-widest">{method.desc}</div>
+                                <div className="text-sm font-bold text-[#3f393e]">{method.name}</div>
+                                <div className="text-[10px] uppercase tracking-widest text-[#9a9298]">{method.desc}</div>
                               </div>
                             </div>
                           </div>
@@ -345,21 +351,21 @@ const Checkout = () => {
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden"
                           >
-                            <div className="glass bg-foreground/[0.02] p-6 mb-6 border-emerald-500/20 relative rounded-2xl">
-                              <h3 className="text-emerald-400 font-bold mb-4 text-sm uppercase tracking-wider">Transfer Details</h3>
+                            <div className="relative mb-6 border-t border-[#e8e3e5] bg-[#f4f0ed] p-6">
+                              <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-[#a35d70]">Transfer Details</h3>
                               
                               <div className="space-y-4 mb-6">
                                 {paymentMethod === 'jazzcash' && (
                                   <>
                                     <div className="flex justify-between items-center text-sm">
-                                      <span className="text-foreground/50">Account Title:</span>
-                                      <span className="text-foreground font-medium">{JAZZCASH_ACCOUNT.name}</span>
+                                      <span className="text-[#9a9298]">Account Title:</span>
+                                      <span className="font-medium text-[#3f393e]">{JAZZCASH_ACCOUNT.name}</span>
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
-                                      <span className="text-foreground/50">JazzCash Number:</span>
+                                      <span className="text-[#9a9298]">JazzCash Number:</span>
                                       <div className="flex items-center gap-2">
-                                        <span className="text-emerald-400 font-bold text-lg">{JAZZCASH_ACCOUNT.number}</span>
-                                        <button onClick={() => copyToClipboard(JAZZCASH_ACCOUNT.number)} className="p-1 hover:bg-foreground/10 rounded"><Copy className="h-4 w-4 text-foreground/50" /></button>
+                                        <span className="text-lg font-bold text-[#a35d70]">{JAZZCASH_ACCOUNT.number}</span>
+                                        <button onClick={() => copyToClipboard(JAZZCASH_ACCOUNT.number)} className="rounded p-1 hover:bg-[#eee9eb]"><Copy className="h-4 w-4 text-[#9a9298]" /></button>
                                       </div>
                                     </div>
                                   </>
@@ -367,14 +373,14 @@ const Checkout = () => {
                                 {paymentMethod === 'easypaisa' && (
                                   <>
                                     <div className="flex justify-between items-center text-sm">
-                                      <span className="text-foreground/50">Account Title:</span>
-                                      <span className="text-foreground font-medium">{EASYPAISA_ACCOUNT.name}</span>
+                                      <span className="text-[#9a9298]">Account Title:</span>
+                                      <span className="font-medium text-[#3f393e]">{EASYPAISA_ACCOUNT.name}</span>
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
-                                      <span className="text-foreground/50">EasyPaisa Number:</span>
+                                      <span className="text-[#9a9298]">EasyPaisa Number:</span>
                                       <div className="flex items-center gap-2">
-                                        <span className="text-emerald-400 font-bold text-lg">{EASYPAISA_ACCOUNT.number}</span>
-                                        <button onClick={() => copyToClipboard(EASYPAISA_ACCOUNT.number)} className="p-1 hover:bg-foreground/10 rounded"><Copy className="h-4 w-4 text-foreground/50" /></button>
+                                        <span className="text-lg font-bold text-[#a35d70]">{EASYPAISA_ACCOUNT.number}</span>
+                                        <button onClick={() => copyToClipboard(EASYPAISA_ACCOUNT.number)} className="rounded p-1 hover:bg-[#eee9eb]"><Copy className="h-4 w-4 text-[#9a9298]" /></button>
                                       </div>
                                     </div>
                                   </>
@@ -382,14 +388,14 @@ const Checkout = () => {
                                 {paymentMethod === 'sadapay' && (
                                   <>
                                     <div className="flex justify-between items-center text-sm">
-                                      <span className="text-foreground/50">Account Title:</span>
-                                      <span className="text-foreground font-medium">{SADAPAY_ACCOUNT.name}</span>
+                                      <span className="text-[#9a9298]">Account Title:</span>
+                                      <span className="font-medium text-[#3f393e]">{SADAPAY_ACCOUNT.name}</span>
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
-                                      <span className="text-foreground/50">SadaPay IBAN / Phone:</span>
+                                      <span className="text-[#9a9298]">SadaPay IBAN / Phone:</span>
                                       <div className="flex items-center gap-2">
-                                        <span className="text-emerald-400 font-bold text-lg">{SADAPAY_ACCOUNT.number}</span>
-                                        <button onClick={() => copyToClipboard(SADAPAY_ACCOUNT.number)} className="p-1 hover:bg-foreground/10 rounded"><Copy className="h-4 w-4 text-foreground/50" /></button>
+                                        <span className="text-lg font-bold text-[#a35d70]">{SADAPAY_ACCOUNT.number}</span>
+                                        <button onClick={() => copyToClipboard(SADAPAY_ACCOUNT.number)} className="rounded p-1 hover:bg-[#eee9eb]"><Copy className="h-4 w-4 text-[#9a9298]" /></button>
                                       </div>
                                     </div>
                                   </>
@@ -398,30 +404,30 @@ const Checkout = () => {
 
                               <div className="space-y-4">
                                 <div className="space-y-2">
-                                  <label className="text-[10px] uppercase tracking-widest font-bold text-foreground/50">Transaction ID (TID)</label>
-                                  <input value={tid} onChange={(e) => setTid(e.target.value)} placeholder="e.g. 0123456789" className="w-full glass bg-background/40 border-emerald-500/30 rounded-xl h-12 px-4 text-foreground focus:outline-none focus:border-emerald-400" />
+                                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#777077]">Transaction ID (TID)</label>
+                                  <input value={tid} onChange={(e) => setTid(e.target.value)} placeholder="e.g. 0123456789" className="h-12 w-full border border-[#d8cfd3] bg-white px-4 text-[#3f393e] outline-none focus:border-[#c97685]" />
                                 </div>
 
                                 <div className="space-y-2">
-                                  <label className="text-[10px] uppercase tracking-widest font-bold text-foreground/50">Upload Payment Proof (Screenshot)</label>
+                                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#777077]">Upload Payment Proof (Screenshot)</label>
                                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                                   <div 
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="border-2 border-dashed border-emerald-500/30 hover:border-emerald-400/60 p-4 rounded-xl text-center cursor-pointer glass hover:bg-foreground/[0.04] transition-all flex flex-col items-center justify-center gap-2"
+                                    className="flex cursor-pointer flex-col items-center justify-center gap-2 border-2 border-dashed border-[#d8cfd3] p-4 text-center transition-all hover:border-[#c97685] hover:bg-white"
                                   >
                                     {previewUrl ? (
                                       <div className="flex items-center gap-3">
-                                        <img src={previewUrl} alt="Screenshot proof" className="w-16 h-16 object-cover rounded-lg border border-emerald-400" />
+                                        <img src={previewUrl} alt="Screenshot proof" className="h-16 w-16 rounded-lg border border-[#c97685] object-cover" />
                                         <div className="text-left">
-                                          <div className="text-xs font-bold text-emerald-400">Screenshot Uploaded</div>
-                                          <div className="text-[10px] text-foreground/50">Click to replace</div>
+                                          <div className="text-xs font-bold text-[#a35d70]">Screenshot Uploaded</div>
+                                          <div className="text-[10px] text-[#9a9298]">Click to replace</div>
                                         </div>
                                       </div>
                                     ) : (
                                       <>
-                                        <Upload className="h-6 w-6 text-emerald-400" />
-                                        <div className="text-xs text-foreground/80 font-medium">Click to select screenshot image</div>
-                                        <div className="text-[10px] text-foreground/40">PNG, JPG up to 5MB</div>
+                                        <Upload className="h-6 w-6 text-[#a35d70]" />
+                                        <div className="text-xs font-medium text-[#5f595d]">Click to select screenshot image</div>
+                                        <div className="text-[10px] text-[#9a9298]">PNG, JPG up to 5MB</div>
                                       </>
                                     )}
                                   </div>
@@ -431,7 +437,7 @@ const Checkout = () => {
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </GlassCard>
+                    </div>
                   </motion.div>
                 )}
 
@@ -442,13 +448,13 @@ const Checkout = () => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                   >
-                    <GlassCard className="p-8">
-                      <h2 className="text-2xl font-display text-foreground mb-8">Review Order</h2>
+                    <div className="border-t border-[#e8e3e5] bg-white p-6 md:p-8">
+                      <h2 className="mb-8 font-serif text-3xl text-[#242024]">Review Order</h2>
                       <div className="space-y-8">
                         <div>
-                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4">Shipping Details</h3>
-                          <div className="glass bg-foreground/[0.02] p-4 text-sm text-foreground/70 leading-relaxed rounded-xl">
-                            <span className="font-medium text-foreground">{formData.firstName} {formData.lastName}</span><br />
+                          <h3 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a35d70]">Shipping Details</h3>
+                          <div className="border-t border-[#e8e3e5] bg-[#f4f0ed] p-4 text-sm leading-relaxed text-[#777077]">
+                            <span className="font-medium text-[#3f393e]">{formData.firstName} {formData.lastName}</span><br />
                             {formData.address}, {formData.city} {formData.zipCode}<br />
                             {formData.phone}<br />
                             {formData.email}
@@ -456,31 +462,31 @@ const Checkout = () => {
                         </div>
 
                         <div>
-                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4">Payment Method</h3>
-                          <div className="glass bg-foreground/[0.02] p-4 text-sm text-foreground/70 rounded-xl">
-                            <span className="font-medium text-foreground uppercase">{paymentMethod}</span>
+                          <h3 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a35d70]">Payment Method</h3>
+                          <div className="border-t border-[#e8e3e5] bg-[#f4f0ed] p-4 text-sm text-[#777077]">
+                            <span className="font-medium uppercase text-[#3f393e]">{paymentMethod}</span>
                             {paymentMethod !== 'cod' && (
                               <div className="mt-1 flex flex-col gap-1">
-                                {tid && <div>TID: <span className="text-emerald-400 font-mono">{tid}</span></div>}
-                                {paymentScreenshot && <div className="text-xs text-emerald-400 flex items-center gap-1"><ImageIcon className="h-3 w-3" /> Screenshot proof attached</div>}
+                                {tid && <div>TID: <span className="font-mono text-[#a35d70]">{tid}</span></div>}
+                                {paymentScreenshot && <div className="flex items-center gap-1 text-xs text-[#a35d70]"><ImageIcon className="h-3 w-3" /> Screenshot proof attached</div>}
                               </div>
                             )}
                           </div>
                         </div>
 
                         <div>
-                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4">Items ({items.length})</h3>
+                          <h3 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a35d70]">Items ({checkoutItems.length})</h3>
                           <div className="space-y-3">
-                            {items.map((item) => (
-                              <div key={item.product.id} className="flex gap-4 items-center glass p-3 rounded-xl">
-                                <div className="h-14 w-14 glass bg-foreground/[0.02] rounded-lg overflow-hidden p-1 flex items-center justify-center">
+                            {checkoutItems.map((item) => (
+                              <div key={item.product.id} className="flex items-center gap-4 border-t border-[#e8e3e5] py-3">
+                                <div className="flex h-14 w-14 items-center justify-center overflow-hidden bg-[#f4f0ed] p-1">
                                   <img src={item.product.imageUrl} alt={item.product.name} className="max-h-full max-w-full object-contain" />
                                 </div>
                                 <div className="flex-1">
-                                  <div className="text-sm font-medium text-foreground line-clamp-1">{item.product.name}</div>
-                                  <div className="text-xs text-foreground/40">Qty: {item.quantity} × {formatPrice(item.product.price)}</div>
+                                  <div className="line-clamp-1 text-sm font-medium text-[#3f393e]">{item.product.name}</div>
+                                  <div className="text-xs text-[#9a9298]">Qty: {item.quantity} × {formatPrice(item.product.price)}</div>
                                 </div>
-                                <div className="text-sm font-bold text-foreground">
+                                <div className="text-sm font-bold text-[#c05f70]">
                                   {formatPrice(item.product.price * item.quantity)}
                                 </div>
                               </div>
@@ -488,7 +494,7 @@ const Checkout = () => {
                           </div>
                         </div>
                       </div>
-                    </GlassCard>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -496,24 +502,24 @@ const Checkout = () => {
 
             {/* Summary Sidebar */}
             <div className="lg:sticky lg:top-24 h-fit">
-              <GlassCard className="p-8">
-                <h3 className="font-display text-xl text-foreground mb-6">Order Summary</h3>
-                <div className="space-y-4 mb-6 text-sm text-foreground/70">
+              <div className="bg-[#f4f0ed] p-6 md:p-8">
+                <h3 className="mb-6 font-serif text-3xl text-[#242024]">Order Summary</h3>
+                <div className="mb-6 space-y-4 text-sm text-[#777077]">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span className="font-medium text-foreground">{formatPrice(subtotal)}</span>
+                    <span className="font-medium text-[#3f393e]">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span className="font-medium text-foreground">
-                      {shipping === 0 ? <span className="text-emerald-400">Free</span> : formatPrice(shipping)}
+                    <span className="font-medium text-[#3f393e]">
+                      {shipping === 0 ? <span className="text-[#a35d70]">Free</span> : formatPrice(shipping)}
                     </span>
                   </div>
                 </div>
-                <div className="border-t border-foreground/[0.08] pt-6 mb-8">
-                  <div className="flex justify-between items-end">
-                    <span className="text-foreground font-medium">Total</span>
-                    <span className="font-display text-3xl font-bold text-gradient-accent">
+                <div className="mb-8 border-t border-[#e3dadd] pt-6">
+                  <div className="flex items-end justify-between">
+                    <span className="font-medium text-[#3f393e]">Total</span>
+                    <span className="font-serif text-3xl text-[#c05f70]">
                       {formatPrice(total)}
                     </span>
                   </div>
@@ -524,29 +530,27 @@ const Checkout = () => {
                     <button
                       onClick={handleBack}
                       disabled={isSubmitting}
-                      className="h-14 px-6 glass rounded-full flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/[0.1] transition-colors disabled:opacity-50"
+                      className="flex h-14 items-center justify-center border border-[#d8cfd3] bg-white px-6 text-[#777077] transition-colors hover:bg-[#fffdfc] hover:text-[#3f393e] disabled:opacity-50"
                     >
                       <ArrowLeft className="h-5 w-5" />
                     </button>
                   )}
                   
-                  <MagneticButton className="flex-1">
                     <button
                       onClick={currentStep === steps.length ? placeOrder : handleNext}
                       disabled={isSubmitting}
-                      className="w-full h-14 glass-button-primary flex justify-center items-center gap-2"
+                      className="flex h-14 w-full items-center justify-center gap-2 bg-[#242024] text-[10px] font-semibold uppercase tracking-[0.1em] text-white transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isSubmitting ? (
-                        <div className="w-5 h-5 border-2 border-foreground/30 border-t-white rounded-full animate-spin" />
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                       ) : currentStep === steps.length ? (
                         <>Place Order <Check className="ml-1 h-5 w-5" /></>
                       ) : (
                         <>Continue <ArrowRight className="ml-1 h-5 w-5" /></>
                       )}
                     </button>
-                  </MagneticButton>
                 </div>
-              </GlassCard>
+              </div>
             </div>
           </div>
         </div>

@@ -119,6 +119,7 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
       const token = await (window as any).Clerk?.session?.getToken() || '';
       const reviewData = {
         product_id: productId,
+        user_id: user.id,
         profile_id: profile?.id || null,
         rating: newRating,
         comment: JSON.stringify({
@@ -179,8 +180,11 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await submitReview.mutateAsync();
-    setIsSubmitting(false);
+    try {
+      await submitReview.mutateAsync();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const averageRating = reviews.length > 0
