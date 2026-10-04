@@ -27,7 +27,10 @@ export interface CartItem {
 
 interface CartStore {
   items: CartItem[];
+  buyNowItems: CartItem[] | null;
   addItem: (product: Product, quantity?: number) => void;
+  setBuyNowItem: (product: Product, quantity?: number) => void;
+  clearBuyNowItems: () => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -40,6 +43,7 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      buyNowItems: null,
       
       addItem: (product, quantity = 1) => {
         set((state) => {
@@ -56,6 +60,12 @@ export const useCartStore = create<CartStore>()(
           return { items: [...state.items, { product, quantity }] };
         });
       },
+
+      setBuyNowItem: (product, quantity = 1) => {
+        set({ buyNowItems: [{ product, quantity }] });
+      },
+
+      clearBuyNowItems: () => set({ buyNowItems: null }),
       
       removeItem: (productId) => {
         set((state) => ({

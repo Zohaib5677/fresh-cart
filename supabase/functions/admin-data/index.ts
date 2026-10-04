@@ -3,8 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-secret',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-secret, cache-control, x-supabase-api-version',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 }
 
 // Safely decode JWT payload without verifying signature (fallback)
@@ -22,7 +23,7 @@ function decodeJwtPayload(token: string): any {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { status: 204, headers: corsHeaders })
   }
 
   try {
@@ -147,7 +148,15 @@ serve(async (req) => {
     // --- Review Actions (no admin required) ---
     if (action === 'create_review') {
       const { reviewData } = requestData;
-      const { data, error } = await supabase.from('reviews').insert(reviewData).select().single();
+      if (!userId || userId === 'admin') {
+        throw new Error('Authentication is required to submit a review');
+      }
+
+      const reviewPayload = {
+        ...reviewData,
+        user_id: userId,
+      };
+      const { data, error } = await supabase.from('reviews').insert(reviewPayload).select().single();
       if (error) throw error;
       return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }

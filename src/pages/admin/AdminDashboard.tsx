@@ -102,14 +102,14 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div className="admin-shell min-h-screen bg-[#fffdfc] flex">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 transform transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#fffdfc] transform transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
-            <h1 className="text-xl font-bold text-foreground">HomeStyle Admin</h1>
-            <button className="lg:hidden text-foreground" onClick={() => setIsSidebarOpen(false)}>
+          <div className="flex items-center justify-between h-20 px-6 border-b border-[#e8e3e5]">
+            <h1 className="font-serif text-xl tracking-[0.08em] text-[#242024]">HAMAASH</h1>
+            <button className="lg:hidden text-[#4e484d]" onClick={() => setIsSidebarOpen(false)}>
               <X className="h-6 w-6" />
             </button>
           </div>
@@ -125,8 +125,8 @@ const AdminDashboard = () => {
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   activeTab === item.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-slate-300 hover:bg-slate-700'
+                    ? 'bg-[#a35d70] text-white shadow-sm'
+                    : 'text-[#716b70] hover:bg-[#f4dfe3] hover:text-[#8f4f60]'
                 }`}
               >
                 <item.icon className="h-5 w-5" />
@@ -136,10 +136,10 @@ const AdminDashboard = () => {
           </nav>
 
           {/* Sign Out */}
-          <div className="p-4 border-t border-slate-700">
+          <div className="p-4 border-t border-[#e8e3e5]">
             <Button
               variant="ghost"
-              className="w-full justify-start text-slate-300 hover:text-foreground hover:bg-slate-700"
+              className="w-full justify-start text-[#716b70] hover:text-[#8f4f60] hover:bg-[#f4dfe3]"
               onClick={handleSignOut}
             >
               <LogOut className="h-5 w-5 mr-3" />
@@ -152,24 +152,27 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 lg:ml-64">
         {/* Top Bar */}
-        <header className="h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-6">
-          <button className="lg:hidden text-foreground" onClick={() => setIsSidebarOpen(true)}>
+        <header className="h-20 bg-[#fffdfc]/95 backdrop-blur-xl border-b border-[#e8e3e5] flex items-center justify-between px-6">
+          <button className="lg:hidden text-[#4e484d]" onClick={() => setIsSidebarOpen(true)}>
             <Menu className="h-6 w-6" />
           </button>
           <div className="flex items-center gap-4">
-            <span className="text-slate-300">Welcome, Admin</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a9298]">Welcome, Admin</span>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="p-6">
+        <main className="p-5 md:p-8">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#a35d70]">Store overview</p>
+                <h2 className="mt-2 font-serif text-4xl text-[#242024]">Dashboard</h2>
+              </div>
               
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="bg-slate-800 border-slate-700">
+                <Card className="admin-stat-card">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium text-slate-300">Total Products</CardTitle>
                     <Package className="h-4 w-4 text-primary" />
@@ -179,7 +182,7 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-800 border-slate-700">
+                <Card className="admin-stat-card">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium text-slate-300">Total Orders</CardTitle>
                     <ShoppingBag className="h-4 w-4 text-blue-500" />
@@ -189,7 +192,7 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-800 border-slate-700">
+                <Card className="admin-stat-card">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium text-slate-300">Total Revenue</CardTitle>
                     <DollarSign className="h-4 w-4 text-green-500" />
@@ -199,7 +202,7 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-800 border-slate-700">
+                <Card className="admin-stat-card">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium text-slate-300">Pending Orders</CardTitle>
                     <TrendingUp className="h-4 w-4 text-yellow-500" />

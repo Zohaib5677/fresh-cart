@@ -19,13 +19,11 @@ import Auth from "./pages/Auth";
 import Account from "./pages/Account";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import Wishlist from "./pages/Wishlist";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 // @ts-ignore
 import { PrismBackground } from "@/components/ui/react-bits";
-
 import { CustomerChatWidget } from "@/components/chat/CustomerChatWidget";
 
 const ScrollToTop = () => {
@@ -36,6 +34,16 @@ const ScrollToTop = () => {
   return null;
 };
 
+const PublicChatWidget = () => {
+  const { pathname } = useLocation();
+  return pathname.startsWith('/admin') ? null : <CustomerChatWidget />;
+};
+
+const PublicMobileNavigation = () => {
+  const { pathname } = useLocation();
+  return pathname.startsWith('/admin') ? null : <MobileBottomNav />;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -44,12 +52,12 @@ const App = () => (
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
-          <CustomerChatWidget />
           <Sonner position="top-right" />
           <BrowserRouter>
             <ScrollToTop />
+            <PublicChatWidget />
             <FloatingNav />
-            <MobileBottomNav />
+            <PublicMobileNavigation />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/products" element={<Products />} />
@@ -58,7 +66,6 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/orders/:orderId" element={<OrderDetails />} />
-              <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/auth" element={<Auth />} />

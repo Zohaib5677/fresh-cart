@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Heart, User, ShoppingBag } from 'lucide-react';
+import { Home, Search, User, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCartStore } from '@/stores/cartStore';
 
@@ -16,7 +16,6 @@ const MobileBottomNav = () => {
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Search, label: 'Shop', path: '/products' },
-    { icon: Heart, label: 'Saved', path: '/products?filter=wishlist' },
     { icon: ShoppingBag, label: 'Orders', path: user ? '/orders' : '/auth' },
     { icon: User, label: 'Account', path: user ? '/account' : '/auth' },
   ];

@@ -41,7 +41,7 @@ const Index = () => {
           subtitle="The pieces everyone is adding to their edit"
           products={trending.slice(0, 12)}
           viewAllLink={topSelling.length > 0 ? '/products?filter=top-selling' : '/products'}
-          badge="The Vertexo edit"
+          badge="The Hamaash edit"
         />
         
         <PromoBanner products={products} />
@@ -52,7 +52,7 @@ const Index = () => {
             subtitle="Premium pieces selected for your wardrobe"
             products={exclusive.slice(0, 8)}
             viewAllLink="/products?filter=exclusive"
-            badge="Only at Vertexo"
+            badge="Only at Hamaash"
           />
         )}
 

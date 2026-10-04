@@ -463,14 +463,14 @@ export const ScrollStack = ({ items = [], renderItem }: any) => {
 // 5. Bubble Menu
 export const BubbleMenu = ({ items = [] }: any) => {
   return (
-    <div className="fixed bottom-24 right-6 z-40 flex flex-col gap-3 items-end pointer-events-auto">
+    <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex flex-col gap-3 items-end pointer-events-auto">
       {items.map((item: any, idx: number) => (
         <motion.a
           key={idx}
           href={item.href || '#'}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="glass p-3 rounded-full shadow-xl flex items-center justify-center border border-emerald-500/20 text-emerald-400 bg-background/80 hover:bg-emerald-500 hover:text-white transition-colors"
+          className="glass h-14 w-14 rounded-full shadow-xl flex shrink-0 items-center justify-center border border-[#c97685]/30 text-[#a35d70] bg-background/80 hover:bg-[#a35d70] hover:text-white transition-colors"
           title={item.label}
         >
           {item.icon}

@@ -418,27 +418,33 @@ const AdminProducts = () => {
                 Add Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700 text-foreground">
-              <DialogHeader>
-                <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+            <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl border-[#e8e3e5] bg-[#fffdfc] p-0 text-[#3f393e] shadow-2xl">
+              <DialogHeader className="border-b border-[#e8e3e5] bg-[#f4f0ed] px-6 py-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#a35d70]">
+                  {editingProduct ? 'Catalog management' : 'Add to catalog'}
+                </p>
+                <DialogTitle className="mt-1 font-serif text-3xl font-normal text-[#242024]">
+                  {editingProduct ? 'Edit Product' : 'Add New Product'}
+                </DialogTitle>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-6 px-6 py-6">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Name *</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">Name *</Label>
                     <Input
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="bg-slate-900 border-slate-600"
+                      placeholder="e.g. Fresh Organic Milk"
+                      className="h-11 rounded-xl border-[#d8cfd3] bg-white text-[#3f393e] placeholder:text-[#b1a8ad] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Category *</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">Category *</Label>
                     <Select
                       value={formData.category}
                       onValueChange={(value) => setFormData({ ...formData, category: value })}
                     >
-                      <SelectTrigger className="bg-slate-900 border-slate-600">
+                      <SelectTrigger className="h-11 rounded-xl border-[#d8cfd3] bg-white text-[#3f393e] focus:ring-[#a35d70]/20">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -453,114 +459,118 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Description</Label>
+                  <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">Description</Label>
                   <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="bg-slate-900 border-slate-600"
+                    placeholder="Add a short description customers will see..."
+                    className="min-h-28 rounded-xl border-[#d8cfd3] bg-white text-[#3f393e] placeholder:text-[#b1a8ad] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
                   />
                 </div>
 
-                <div className="grid grid-cols-4 gap-4">
+                <div className="rounded-2xl border border-[#e8e3e5] bg-[#fffdfc] p-4">
+                  <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#a35d70]">Pricing</p>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-2">
-                    <Label>Price (Rs.) *</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#716b70]">Price (Rs.) *</Label>
                     <Input
                       type="number"
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      className="bg-slate-900 border-slate-600"
+                      className="h-11 rounded-xl border-[#d8cfd3] bg-[#f4f0ed] text-[#3f393e] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Original Price</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#716b70]">Original Price</Label>
                     <Input
                       type="number"
                       value={formData.original_price}
                       onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
-                      className="bg-slate-900 border-slate-600"
+                      className="h-11 rounded-xl border-[#d8cfd3] bg-[#f4f0ed] text-[#3f393e] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Discount %</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#716b70]">Discount %</Label>
                     <Input
                       type="number"
                       value={formData.discount_percentage}
                       onChange={(e) => setFormData({ ...formData, discount_percentage: e.target.value })}
-                      className="bg-slate-900 border-slate-600"
+                      className="h-11 rounded-xl border-[#d8cfd3] bg-[#f4f0ed] text-[#3f393e] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Delivery Fee (Rs.)</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#716b70]">Delivery Fee (Rs.)</Label>
                     <Input
                       type="number"
                       value={formData.delivery_fee}
                       onChange={(e) => setFormData({ ...formData, delivery_fee: e.target.value })}
-                      className="bg-slate-900 border-slate-600"
+                      className="h-11 rounded-xl border-[#d8cfd3] bg-[#f4f0ed] text-[#3f393e] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
                     />
+                  </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
                   <div className="space-y-2">
-                    <Label>Stock Quantity *</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">Stock Quantity *</Label>
                     <Input
                       type="number"
                       value={formData.stock_quantity}
                       onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
-                      className="bg-slate-900 border-slate-600"
+                      className="h-11 rounded-xl border-[#d8cfd3] bg-white text-[#3f393e] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Unit</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">Unit</Label>
                     <Input
                       value={formData.unit}
                       onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                      className="bg-slate-900 border-slate-600"
+                      className="h-11 rounded-xl border-[#d8cfd3] bg-white text-[#3f393e] placeholder:text-[#b1a8ad] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
                       placeholder="e.g., 1 piece, Set of 6"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Image (Auto Uploads to Supabase)</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">Product image</Label>
                     <div className="flex gap-2">
                       <Input
                         type="file"
                         accept="image/*"
                         onChange={handleImageUpload}
-                        className="bg-slate-900 border-slate-600 text-slate-300"
+                        className="h-11 rounded-xl border-[#d8cfd3] bg-white text-[#716b70] file:mr-3 file:rounded-lg file:border-0 file:bg-[#f4dfe3] file:px-3 file:py-1 file:text-xs file:font-semibold file:text-[#8f4f60]"
                         disabled={isUploadingImage}
                       />
-                      {isUploadingImage && <Loader2 className="h-6 w-6 animate-spin text-slate-400 mt-2" />}
+                      {isUploadingImage && <Loader2 className="mt-2 h-6 w-6 animate-spin text-[#a35d70]" />}
                     </div>
                     {formData.image_url && (
-                       <img src={formData.image_url} alt="Preview" className="h-20 w-20 object-cover mt-2 rounded border border-slate-700" />
+                       <img src={formData.image_url} alt="Preview" className="mt-2 h-20 w-20 rounded-xl border border-[#e8e3e5] object-cover shadow-sm" />
                     )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded-lg">
-                    <Label>Top Selling</Label>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="flex items-center justify-between rounded-xl border border-[#e8e3e5] bg-[#f4f0ed] p-4">
+                    <Label className="text-sm font-medium text-[#4e484d]">Top Selling</Label>
                     <Switch
                       checked={formData.is_top_selling}
                       onCheckedChange={(checked) => setFormData({ ...formData, is_top_selling: checked })}
                     />
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded-lg">
-                    <Label>Exclusive</Label>
+                  <div className="flex items-center justify-between rounded-xl border border-[#e8e3e5] bg-[#f4f0ed] p-4">
+                    <Label className="text-sm font-medium text-[#4e484d]">Exclusive</Label>
                     <Switch
                       checked={formData.is_exclusive}
                       onCheckedChange={(checked) => setFormData({ ...formData, is_exclusive: checked })}
                     />
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded-lg">
-                    <Label>Promotional</Label>
+                  <div className="flex items-center justify-between rounded-xl border border-[#e8e3e5] bg-[#f4f0ed] p-4">
+                    <Label className="text-sm font-medium text-[#4e484d]">Promotional</Label>
                     <Switch
                       checked={formData.is_promotional}
                       onCheckedChange={(checked) => setFormData({ ...formData, is_promotional: checked })}
                     />
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded-lg">
-                    <Label>Active</Label>
+                  <div className="flex items-center justify-between rounded-xl border border-[#e8e3e5] bg-[#f4f0ed] p-4">
+                    <Label className="text-sm font-medium text-[#4e484d]">Active</Label>
                     <Switch
                       checked={formData.is_active}
                       onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
@@ -568,11 +578,11 @@ const AdminProducts = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 mt-4">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <div className="flex justify-end gap-3 border-t border-[#e8e3e5] pt-5">
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-xl border-[#d8cfd3] text-[#716b70] hover:bg-[#f4f0ed]">
                     Cancel
                   </Button>
-                  <Button onClick={handleSave} disabled={!formData.name || !formData.price || !formData.category}>
+                  <Button onClick={handleSave} disabled={!formData.name || !formData.price || !formData.category} className="rounded-xl bg-[#a35d70] px-6 text-white hover:bg-[#8f4f60]">
                     {editingProduct ? 'Update' : 'Create'}
                   </Button>
                 </div>

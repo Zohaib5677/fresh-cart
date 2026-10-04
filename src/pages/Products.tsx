@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { Filter, SlidersHorizontal, Grid3X3, List } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Filter, SlidersHorizontal, X } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/products/ProductCard';
@@ -25,19 +25,12 @@ import { Slider } from '@/components/ui/slider';
 import { useProducts } from '@/hooks/useProducts';
 import { categories } from '@/data/products'; // Keep categories static for now or fetch later
 import { Loader2 } from 'lucide-react';
-import { useWishlist } from '@/hooks/useWishlist';
-import { formatPrice } from '@/lib/currency';
-// @ts-ignore
-import { LineSidebar, PillNav, Masonry } from '@/components/ui/react-bits';
 
 type SortOption = 'newest' | 'price-asc' | 'price-desc' | 'rating' | 'best-selling';
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: products = [], isLoading } = useProducts();
-  const { wishlistItems } = useWishlist();
-
-  const [explorerCategory, setExplorerCategory] = useState(categories[0]?.id || 'dairy');
 
   const categoryParam = searchParams.get('category');
   const filterParam = searchParams.get('filter');
@@ -86,8 +79,6 @@ const Products = () => {
       filtered = filtered.filter((p) => p.isExclusive);
     } else if (filterParam === 'promotional') {
       filtered = filtered.filter((p) => p.isPromotional);
-    } else if (filterParam === 'wishlist') {
-      filtered = filtered.filter((p) => wishlistItems.includes(p.id));
     }
 
     // Price filter
@@ -119,7 +110,7 @@ const Products = () => {
     }
 
     return filtered;
-  }, [selectedCategories, priceRange, showDiscounted, sortBy, filterParam, queryParam, products, wishlistItems]);
+  }, [selectedCategories, priceRange, showDiscounted, sortBy, filterParam, queryParam, products]);
 
   const toggleCategory = (categoryId: string) => {
     setSelectedCategories((prev) =>
@@ -193,65 +184,17 @@ const Products = () => {
     </div>
   );
 
-  const isExploringCategories = !categoryParam && !queryParam && !filterParam;
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-8 pt-32">
-        {isExploringCategories ? (
-          <div className="flex flex-col md:flex-row gap-4 md:gap-8 bg-foreground/[0.02] rounded-3xl border border-foreground/[0.08] overflow-hidden min-h-[70vh]">
-            {/* Line Sidebar for desktop / Pill Nav for mobile */}
-            <div className="hidden md:block">
-              <LineSidebar
-                items={categories.map(c => ({ id: c.id, name: `${c.icon} ${c.name}`, count: products.filter(p => p.category === c.id).length }))}
-                activeItem={explorerCategory}
-                onItemSelect={(id: string) => setExplorerCategory(id)}
-              />
-            </div>
-
-            <div className="md:hidden p-4 overflow-x-auto">
-              <PillNav
-                items={categories.map(c => ({ id: c.id, label: `${c.icon} ${c.name}` }))}
-                active={explorerCategory}
-                onSelect={(id: string) => setExplorerCategory(id)}
-              />
-            </div>
-            
-            {/* Right Pane (Products Grid) */}
-            <div className="flex-1 p-4 md:p-6 overflow-y-auto">
-               <div className="flex justify-between items-center mb-6">
-                 <h2 className="font-display text-xl text-foreground">{categories.find(c => c.id === explorerCategory)?.name}</h2>
-                 <Button onClick={() => setSearchParams({ category: explorerCategory })} className="bg-emerald-500 hover:bg-emerald-600 text-background rounded-full text-xs h-8 px-4">
-                   View All
-                 </Button>
-               </div>
-               
-               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                 {products.filter(p => p.category === explorerCategory).slice(0, 12).map(p => (
-                   <Link key={p.id} to={`/product/${p.id}`} className="cursor-pointer group flex flex-col items-center gap-2 p-2.5 rounded-2xl glass hover:border-emerald-500/30 transition-all">
-                     <div className="w-full aspect-square bg-foreground/[0.03] rounded-xl overflow-hidden border border-foreground/[0.06] p-2 flex items-center justify-center">
-                       <img src={p.imageUrl} alt={p.name} className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300" />
-                     </div>
-                     <span className="text-[11px] font-medium text-center text-foreground line-clamp-2">{p.name}</span>
-                     <span className="text-xs font-bold text-emerald-500">{formatPrice(p.price)}</span>
-                   </Link>
-                 ))}
-                 
-                 {products.filter(p => p.category === explorerCategory).length === 0 && (
-                   <div className="col-span-full text-center py-10 text-foreground/40 text-sm">
-                     No products found in this category.
-                   </div>
-                 )}
-               </div>
-            </div>
-          </div>
-        ) : (
-          <>
-        {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-ink mb-2">
+      <main className="flex-1 bg-[#fffdfc] px-4 pb-24 pt-28 md:px-8 md:pb-20 md:pt-40">
+        <div className="mx-auto max-w-[1440px]">
+        {/* <section className="mb-8 border-b border-[#e8e3e5] pb-8 md:mb-10 md:pb-10">
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#a35d70]">The HAMAASH shop</p>
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <h1 className="font-serif text-4xl leading-none text-[#242024] md:text-6xl">
             {filterParam === 'top-selling'
               ? 'Top Selling Products'
               : filterParam === 'exclusive'
@@ -263,30 +206,18 @@ const Products = () => {
               : queryParam
               ? `Search Results for "${queryParam}"`
               : 'All Products'}
-          </h1>
-          <p className="text-ink-muted">
-            {filteredProducts.length} products found
-          </p>
-        </div>
-
-        <div className="flex gap-8">
-          {/* Sidebar filters - desktop */}
-          <aside className="hidden lg:block w-[280px] shrink-0">
-            <div className="sticky top-24 bg-white rounded-xl p-6 border border-hairline shadow-card">
-              <div className="flex items-center gap-2 mb-6">
-                <Filter className="h-5 w-5 text-primary" />
-                <h2 className="font-semibold text-lg">Filters</h2>
-              </div>
-              <FilterContent />
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#777077]">Everyday essentials, considered finds, and fresh picks for the way you live.</p>
             </div>
-          </aside>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a9298]">{filteredProducts.length} products</span>
+          </div>
+        </section> */}
 
-          {/* Main content */}
-          <div className="flex-1">
+        <div className="w-full">
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-6 border-b border-hairline">
+            <div className="mb-6 flex flex-wrap items-center justify-start gap-3 border-b border-[#e8e3e5] pb-6">
               {/* Active filters */}
-              <div className="flex flex-wrap gap-2">
+              <div className="order-2 flex flex-wrap gap-2">
                 {selectedCategories.map((catId) => (
                   <Badge
                     key={catId}
@@ -306,7 +237,37 @@ const Products = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="order-1 flex flex-wrap items-center gap-3">
+                <Select
+                  value={selectedCategories[0] || 'all'}
+                  onValueChange={(value) => {
+                    if (value === 'all') {
+                      setSelectedCategories([]);
+                      const nextParams = new URLSearchParams(searchParams);
+                      nextParams.delete('category');
+                      setSearchParams(nextParams);
+                    } else {
+                      setSelectedCategories([value]);
+                      setSearchParams({ category: value });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-10 w-44 rounded-full border-[#d8cfd3] bg-white text-sm">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-3.5 w-3.5 text-[#a35d70]" />
+                      <SelectValue placeholder="Filter by" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.icon} {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 {/* Mobile filter button */}
                 <Sheet>
                   <SheetTrigger asChild>
@@ -315,9 +276,9 @@ const Products = () => {
                       Filters
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left">
+                  <SheetContent side="left" className="border-r-[#e8e3e5] bg-[#fffdfc]">
                     <SheetHeader>
-                      <SheetTitle>Filters</SheetTitle>
+                    <SheetTitle className="font-serif text-3xl font-normal text-[#242024]">Filter by</SheetTitle>
                     </SheetHeader>
                     <div className="mt-6">
                       <FilterContent />
@@ -327,7 +288,7 @@ const Products = () => {
 
                 {/* Sort */}
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                  <SelectTrigger className="w-44 rounded-sm border-hairline h-9 text-sm">
+                  <SelectTrigger className="h-10 w-44 rounded-full border-[#d8cfd3] bg-white text-sm">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -341,31 +302,38 @@ const Products = () => {
               </div>
             </div>
 
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              {selectedCategories.map((catId) => (
+                <Badge key={catId} className="rounded-full border border-[#c97685]/40 bg-[#f4dfe3] px-3 py-1.5 text-[10px] font-medium text-[#a35d70]">
+                  {categories.find((c) => c.id === catId)?.name}
+                  <X className="ml-1 h-3 w-3 cursor-pointer" onClick={() => toggleCategory(catId)} />
+                </Badge>
+              ))}
+            </div>
+
             {/* Products grid */}
             {isLoading ? (
               <div className="flex justify-center p-16 w-full">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 xl:grid-cols-5 md:gap-x-5">
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             ) : (
               <div className="text-center py-24">
-                <p className="text-ink-muted text-lg mb-6">
+                <p className="mb-6 text-lg text-[#777077]">
                   No products found matching your filters
                 </p>
-                <Button variant="outline" onClick={clearFilters} className="rounded-pill border-hairline">
+                <Button variant="outline" onClick={clearFilters} className="rounded-full border-[#d8cfd3]">
                   Clear Filters
                 </Button>
               </div>
             )}
-          </div>
         </div>
-        </>
-        )}
+        </div>
       </main>
 
       <Footer />

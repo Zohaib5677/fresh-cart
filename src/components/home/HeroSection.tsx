@@ -27,7 +27,7 @@ const HeroSection = ({ products }: HeroSectionProps) => {
   const showPrevious = () => setActiveIndex((activeIndex - 1 + editorialProducts.length) % editorialProducts.length);
 
   return (
-    <section className="hero-editorial pt-40 md:pt-36">
+    <section className="hero-editorial pt-24 md:pt-36">
       <div className="mx-auto w-full">
         {/* <div className="flex min-h-[340px] flex-col justify-center bg-[#d8c5ee] p-7 md:min-h-[430px] md:p-10">
           <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#72577e]">✣ Vertexo trends</p>
@@ -36,7 +36,7 @@ const HeroSection = ({ products }: HeroSectionProps) => {
           <Link to="/products" className="mt-7 inline-flex w-fit bg-[#252126] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-white transition-transform hover:-translate-y-0.5">Shop the edit <span className="ml-3">→</span></Link>
         </div> */}
         {activeProduct ? (
-          <div className="relative h-[28vh] min-h-[200px] w-full overflow-hidden bg-[#d9e7e3] md:h-[36vh] md:min-h-[300px]">
+          <div className="relative h-[22vh] min-h-[160px] w-full overflow-hidden bg-[#d9e7e3] md:h-[36vh] md:min-h-[300px]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeProduct.id}

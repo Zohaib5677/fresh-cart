@@ -118,10 +118,17 @@ const AdminOrders = () => {
     
     // Fetch screenshot URL if exists
     if (order.payment_screenshot_url) {
-      const { data } = supabase.storage
+      const { data, error } = await supabase.storage
         .from('payment-screenshots')
-        .getPublicUrl(order.payment_screenshot_url);
-      setScreenshotUrl(data.publicUrl);
+        .createSignedUrl(order.payment_screenshot_url, 60 * 60);
+
+      if (error) {
+        console.error('Error loading payment screenshot:', error);
+        setScreenshotUrl(null);
+        toast.error('Payment screenshot could not be loaded. Check storage bucket policies.');
+      } else {
+        setScreenshotUrl(data.signedUrl);
+      }
     } else {
       setScreenshotUrl(null);
     }
@@ -432,45 +439,47 @@ const AdminOrders = () => {
 
       {/* Order Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl bg-slate-800 border-slate-700 text-foreground max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-[#e8e3e5] bg-[#fffdfc] p-0 text-[#242024] shadow-[0_24px_80px_rgba(36,32,36,0.2)] sm:rounded-3xl">
+          <div className="border-b border-[#e8e3e5] bg-[#f4f0ed] px-5 py-5 sm:px-8">
           <DialogHeader>
-            <DialogTitle>Order Details</DialogTitle>
+            <DialogTitle className="font-serif text-3xl font-normal text-[#242024]">Order Details</DialogTitle>
           </DialogHeader>
+          </div>
           {selectedOrder && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6 px-5 py-6 sm:px-8">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <p className="text-sm text-slate-400">Order ID</p>
-                  <p className="font-mono">{selectedOrder.id}</p>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a9298]">Order ID</p>
+                  <p className="break-all font-mono text-sm text-[#3f393e]">{selectedOrder.id}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-400">Date</p>
-                  <p>{format(new Date(selectedOrder.created_at), 'MMM d, yyyy HH:mm')}</p>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a9298]">Date</p>
+                  <p className="text-sm text-[#3f393e]">{format(new Date(selectedOrder.created_at), 'MMM d, yyyy HH:mm')}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-400">Customer</p>
-                  <p>{selectedOrder.customer_name}</p>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a9298]">Customer</p>
+                  <p className="text-sm font-medium text-[#3f393e]">{selectedOrder.customer_name}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-400">Phone</p>
-                  <p>{selectedOrder.phone}</p>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a9298]">Phone</p>
+                  <p className="text-sm text-[#3f393e]">{selectedOrder.phone}</p>
                 </div>
-                <div className="col-span-2">
-                  <p className="text-sm text-slate-400">Shipping Address</p>
-                  <p>{selectedOrder.shipping_address}, {selectedOrder.shipping_city}</p>
+                <div className="sm:col-span-2">
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a9298]">Shipping Address</p>
+                  <p className="text-sm leading-relaxed text-[#3f393e]">{selectedOrder.shipping_address}, {selectedOrder.shipping_city}</p>
                 </div>
                 {selectedOrder.notes && (
-                  <div className="col-span-2">
-                    <p className="text-sm text-slate-400">Notes</p>
-                    <p>{selectedOrder.notes}</p>
+                  <div className="sm:col-span-2">
+                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a9298]">Notes</p>
+                    <p className="text-sm leading-relaxed text-[#3f393e]">{selectedOrder.notes}</p>
                   </div>
                 )}
               </div>
 
               {/* Payment Screenshot Section */}
               {selectedOrder.status === 'pending_verification' && (
-                <div className="border border-orange-500/50 rounded-lg p-4 bg-orange-500/10">
-                  <h4 className="font-medium mb-3 flex items-center gap-2 text-orange-400">
+                <div className="rounded-2xl border border-[#c97685]/50 bg-[#fdf3f4] p-4 sm:p-5">
+                  <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-[#a35d70]">
                     <ImageIcon className="h-5 w-5" />
                     Payment Screenshot (JazzCash)
                   </h4>
@@ -479,11 +488,11 @@ const AdminOrders = () => {
                       <img 
                         src={screenshotUrl} 
                         alt="Payment screenshot" 
-                        className="max-w-full max-h-64 rounded-lg border border-slate-600"
+                        className="max-h-72 max-w-full rounded-xl border border-[#e3dadd] object-contain shadow-sm"
                       />
                       
                       <div className="space-y-2">
-                        <Label htmlFor="adminNote" className="text-slate-300">
+                        <Label htmlFor="adminNote" className="text-xs font-medium text-[#5f595d]">
                           Admin Note (optional for approval, required for rejection)
                         </Label>
                         <Textarea
@@ -491,7 +500,7 @@ const AdminOrders = () => {
                           value={adminNote}
                           onChange={(e) => setAdminNote(e.target.value)}
                           placeholder="Add a note for the customer (e.g., reason for rejection, payment confirmation details...)"
-                          className="bg-slate-900 border-slate-600 text-foreground"
+                          className="border-[#d8cfd3] bg-white text-[#242024] placeholder:text-[#9a9298] focus-visible:ring-[#c97685]"
                           rows={3}
                         />
                       </div>
@@ -499,7 +508,7 @@ const AdminOrders = () => {
                       <div className="flex gap-3">
                         <Button 
                           onClick={() => handleApprovePayment(selectedOrder.id)}
-                          className="bg-green-600 hover:bg-green-700 flex-1"
+                          className="flex-1 bg-[#a35d70] text-white hover:bg-[#8f4f60]"
                           disabled={isProcessing}
                         >
                           <CheckCircle className="h-4 w-4 mr-2" />
@@ -517,27 +526,27 @@ const AdminOrders = () => {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-slate-400 text-sm">No screenshot uploaded</p>
+                    <p className="text-sm text-[#9a9298]">No screenshot uploaded</p>
                   )}
                 </div>
               )}
 
               {/* Show admin note if exists */}
               {selectedOrder.admin_note && (
-                <div className="border border-blue-500/50 rounded-lg p-4 bg-blue-500/10">
-                  <h4 className="font-medium mb-2 text-blue-400">Admin Note</h4>
-                  <p className="text-slate-300">{selectedOrder.admin_note}</p>
+                <div className="rounded-2xl border border-[#d8cfd3] bg-[#f4f0ed] p-4">
+                  <h4 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-[#a35d70]">Admin Note</h4>
+                  <p className="text-sm leading-relaxed text-[#5f595d]">{selectedOrder.admin_note}</p>
                 </div>
               )}
 
               <div>
-                <h4 className="font-medium mb-3">Order Items</h4>
+                <h4 className="mb-3 font-serif text-2xl font-normal text-[#242024]">Order Items</h4>
                 <div className="space-y-2">
                   {orderItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center p-3 bg-slate-900 rounded-lg">
+                    <div key={item.id} className="flex items-center justify-between gap-4 rounded-xl border border-[#e8e3e5] bg-white p-4">
                       <div>
-                        <p className="font-medium">{item.product_name}</p>
-                        <p className="text-sm text-slate-400">Qty: {item.quantity}</p>
+                        <p className="font-medium text-[#3f393e]">{item.product_name}</p>
+                        <p className="text-sm text-[#9a9298]">Qty: {item.quantity}</p>
                       </div>
                       <p>{formatPrice(item.product_price * item.quantity)}</p>
                     </div>
@@ -545,16 +554,16 @@ const AdminOrders = () => {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center pt-4 border-t border-slate-700">
+              <div className="flex flex-col items-start justify-between gap-3 border-t border-[#e8e3e5] pt-5 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-3">
-                  <span className="text-slate-400">Status:</span>
+                  <span className="text-sm text-[#9a9298]">Status:</span>
                   <Badge className={statusColors[selectedOrder.status]}>
                     {selectedOrder.status.replace('_', ' ')}
                   </Badge>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-slate-400">Total Amount</p>
-                  <p className="text-xl font-bold">{formatPrice(selectedOrder.total_amount)}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a9298]">Total Amount</p>
+                  <p className="text-2xl font-semibold text-[#a35d70]">{formatPrice(selectedOrder.total_amount)}</p>
                 </div>
               </div>
             </div>
