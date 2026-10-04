@@ -29,14 +29,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       }
 
       const headers = new Headers(options?.headers);
-      const hasExplicitAuthorization = headers.has('Authorization');
       const urlStr = typeof url === 'string' ? url : (url instanceof URL ? url.toString() : url?.url || String(url));
       const isStorageRequest = urlStr.includes('/storage/v1/object');
 
       // Storage rejects Clerk `sub` values that are not UUIDs.
-      if (!hasExplicitAuthorization && (isStorageRequest || !isSupabaseAccessToken(clerkToken))) {
+      if (isStorageRequest || !isSupabaseAccessToken(clerkToken)) {
         headers.set('Authorization', `Bearer ${SUPABASE_PUBLISHABLE_KEY}`);
-      } else if (!hasExplicitAuthorization) {
+      } else {
         headers.set('Authorization', `Bearer ${clerkToken}`);
       }
 
