@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuth as useClerkAuth } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -64,6 +65,7 @@ const StarRating = ({
 
 const ProductReviews = ({ productId }: ProductReviewsProps) => {
   const { user, isAdmin } = useAuth();
+  const { getToken } = useClerkAuth();
   const queryClient = useQueryClient();
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
@@ -116,7 +118,7 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      const token = await (window as any).Clerk?.session?.getToken() || '';
+      const token = await getToken();
       const reviewData = {
         product_id: productId,
         profile_id: profile?.id || null,
@@ -148,12 +150,15 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
       console.error('Error submitting review:', error);
       toast.error('Failed to submit review');
     },
+    onSettled: () => {
+      setIsSubmitting(false);
+    },
   });
 
   // Delete review mutation
   const deleteReview = useMutation({
     mutationFn: async (reviewId: string) => {
-      const token = await (window as any).Clerk?.session?.getToken() || '';
+      const token = await getToken();
       const { data, error } = await supabase.functions.invoke('admin-data', {
           body: {
               action: 'delete_review',
@@ -176,11 +181,10 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await submitReview.mutateAsync();
-    setIsSubmitting(false);
+    submitReview.mutate();
   };
 
   const averageRating = reviews.length > 0
