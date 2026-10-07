@@ -8,8 +8,16 @@ This document defines a complete workflow where customers can chat with the stor
 
 - Allow customers to start and continue support/order-related chat.
 - Allow owner/admin to manage and reply from admin portal.
-- Support authenticated users and guests.
+- Support authenticated users; guest chat can be added later with a signed guest token.
 - Provide real-time updates, unread counts, and resolve/close flow.
+
+### Privacy requirement
+
+- Every authenticated customer has a separate conversation keyed by their Clerk user ID.
+- Customer cache entries are stored under a user-specific key; there is no shared `conv_active` or global
+  conversation cache.
+- Supabase row-level security allows customers to read and write only their own conversation and allows
+  store admins to access the inbox. Unauthenticated visitors cannot load or send chat messages.
 
 ---
 
@@ -329,4 +337,3 @@ sequenceDiagram
 1. **Phase 1 (MVP):** text-only chat, authenticated customers, admin replies.
 2. **Phase 2:** guest token support + unread counters + resolve/close.
 3. **Phase 3:** attachments, templates, SLA labels, analytics.
-

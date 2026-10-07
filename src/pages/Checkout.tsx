@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, ShieldCheck, Check, Copy, Upload, Image as ImageIcon } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, ShieldCheck, Check, Copy, Upload, Image as ImageIcon, Tag, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/stores/cartStore';
 import { toast } from 'sonner';
@@ -37,7 +37,62 @@ const Checkout = () => {
   const { items, buyNowItems, clearCart, clearBuyNowItems } = useCartStore();
   const checkoutItems = buyNowItems ?? items;
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
+  // Coupon — pre-seeded from Cart page if available, otherwise enter here
+  const locationState = location.state ?? {};
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(locationState.appliedCoupon ?? null);
+  const [couponDiscount, setCouponDiscount] = useState<number>(locationState.discount ?? 0);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsValidatingCoupon(true);
+    setCouponError('');
+    const { data, error } = await supabase
+      .from('coupons')
+      .select('*')
+      .ilike('code', couponCode.trim())
+      .single();
+    if (error || !data) {
+      setCouponError('Invalid coupon code.');
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } else if (!data.is_active) {
+      setCouponError('This coupon is inactive.');
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } else if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      setCouponError('This coupon has expired.');
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } else if (data.min_order_amount && subtotal < data.min_order_amount) {
+      setCouponError(`Minimum order of ${formatPrice(data.min_order_amount)} required.`);
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } else if (data.max_uses && (data.used_count ?? 0) >= data.max_uses) {
+      setCouponError('This coupon has reached its usage limit.');
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } else {
+      const disc = data.discount_type === 'percentage'
+        ? Math.round((subtotal * data.discount_value) / 100)
+        : data.discount_value;
+      setAppliedCoupon(data);
+      setCouponDiscount(disc);
+      setCouponCode('');
+    }
+    setIsValidatingCoupon(false);
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponError('');
+  };
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -68,7 +123,7 @@ const Checkout = () => {
 
   const subtotal = checkoutItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
   const shipping = subtotal > 0 ? (subtotal >= 1000 ? 0 : 150) : 0;
-  const total = subtotal + shipping;
+  const total = subtotal + shipping - couponDiscount;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -150,7 +205,7 @@ const Checkout = () => {
         status: paymentMethod === 'cod' ? 'pending' : 'pending_verification',
         payment_screenshot_url: paymentScreenshotUrl,
         user_id: isUuid(verifiedUserId || '') ? verifiedUserId : null,
-        notes: `Email: ${formData.email || 'N/A'} | Payment: ${paymentMethod.toUpperCase()}${tid ? ` | TID: ${tid}` : ''}${verifiedUserId ? ` [clerk:${verifiedUserId}]` : ''}`
+        notes: `Email: ${formData.email || 'N/A'} | Payment: ${paymentMethod.toUpperCase()}${tid ? ` | TID: ${tid}` : ''}${appliedCoupon ? ` | Coupon: ${appliedCoupon.code} (-${formatPrice(couponDiscount)})` : ''}${verifiedUserId ? ` [clerk:${verifiedUserId}]` : ''}`
       };
 
       let order: { id: string } | null = null;
@@ -209,6 +264,18 @@ const Checkout = () => {
         });
       } catch (e) {
         console.log('Notification trigger non-blocking error:', e);
+      }
+
+      // 6. Increment coupon used_count (best-effort, non-blocking)
+      if (appliedCoupon) {
+        try {
+          await supabase
+            .from('coupons')
+            .update({ used_count: (appliedCoupon.used_count ?? 0) + 1 })
+            .eq('id', appliedCoupon.id);
+        } catch (e) {
+          console.log('Coupon usage increment non-blocking error:', e);
+        }
       }
 
       // 6. Complete Order
@@ -515,6 +582,63 @@ const Checkout = () => {
                       {shipping === 0 ? <span className="text-[#a35d70]">Free</span> : formatPrice(shipping)}
                     </span>
                   </div>
+                  {appliedCoupon && couponDiscount > 0 && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span>Discount ({appliedCoupon.code})</span>
+                      <span className="font-semibold">− {formatPrice(couponDiscount)}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Coupon Input */}
+                <div className="mb-6 border-t border-[#e3dadd] pt-4">
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#716b70]">Promo Code</p>
+                  <AnimatePresence mode="wait">
+                    {appliedCoupon ? (
+                      <motion.div
+                        key="applied"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="flex items-center justify-between rounded border border-emerald-200 bg-emerald-50 px-3 py-2.5"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-3.5 w-3.5 text-emerald-600" />
+                          <span className="font-mono text-xs font-bold text-emerald-700">{appliedCoupon.code}</span>
+                        </div>
+                        <button onClick={removeCoupon} className="rounded p-0.5 text-emerald-500 hover:bg-emerald-100 hover:text-emerald-700" aria-label="Remove coupon">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <motion.div key="input" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex gap-2">
+                        <input
+                          value={couponCode}
+                          onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(''); }}
+                          onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                          placeholder="Enter code"
+                          className="flex-1 border border-[#d8cfd3] bg-white px-3 py-2 font-mono text-xs uppercase tracking-wider text-[#3f393e] outline-none transition-colors focus:border-[#a35d70]"
+                        />
+                        <button
+                          onClick={handleApplyCoupon}
+                          disabled={isValidatingCoupon || !couponCode.trim()}
+                          className="shrink-0 bg-[#242024] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-white transition-colors hover:bg-[#3f393e] disabled:opacity-50"
+                        >
+                          {isValidatingCoupon ? '...' : 'Apply'}
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  {couponError && (
+                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="mt-1.5 text-xs text-rose-500">
+                      {couponError}
+                    </motion.p>
+                  )}
+                  {appliedCoupon && (
+                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="mt-1.5 text-xs text-emerald-600">
+                      ✓ {appliedCoupon.discount_type === 'percentage' ? `${appliedCoupon.discount_value}% off applied!` : `${formatPrice(appliedCoupon.discount_value)} off applied!`}
+                    </motion.p>
+                  )}
                 </div>
                 <div className="mb-8 border-t border-[#e3dadd] pt-6">
                   <div className="flex items-end justify-between">

@@ -23,6 +23,7 @@ import { useCartStore } from "@/stores/cartStore";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
 import { optimizeImageUrl } from "@/lib/utils";
+import { useFlatDiscount } from "@/hooks/useFlatDiscount";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +35,7 @@ const ProductDetail = () => {
 
   const addItem = useCartStore((state) => state.addItem);
   const setBuyNowItem = useCartStore((state) => state.setBuyNowItem);
+  const { applyDiscount } = useFlatDiscount();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -88,6 +90,10 @@ const ProductDetail = () => {
   const relatedProducts = products
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
+
+  const { displayPrice, originalPrice: flatOriginal, flatBadge } = applyDiscount(product.price, product.originalPrice);
+  const shownOriginal = flatOriginal;
+  const saleBadge = product.discountPercentage ? `-${product.discountPercentage}%` : flatBadge ? `-${flatBadge}` : null;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fffdfc] selection:bg-[#d9e7e3]">
@@ -180,12 +186,17 @@ const ProductDetail = () => {
               </div>
 
               <div className="mb-4 flex items-end gap-3">
+                {saleBadge && (
+                  <span className="self-center bg-[#c97685] px-2 py-1 text-[9px] font-semibold text-white">
+                    {saleBadge}
+                  </span>
+                )}
                 <span className="text-2xl font-semibold text-[#c05f70] md:text-3xl">
-                  {formatPrice(product.price)}
+                  {formatPrice(displayPrice)}
                 </span>
-                {product.originalPrice && (
+                {shownOriginal && shownOriginal !== displayPrice && (
                   <span className="mb-0.5 text-sm text-[#9a9298] line-through">
-                    {formatPrice(product.originalPrice)}
+                    {formatPrice(shownOriginal)}
                   </span>
                 )}
               </div>

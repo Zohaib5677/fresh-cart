@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageSquare, X, Send, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import {
   ChatMessage,
@@ -14,7 +15,7 @@ export const CustomerChatWidget = ({ defaultOrderId }: { defaultOrderId?: string
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
-  const conversationId = 'conv_active';
+  const conversationId = user ? `conv_customer_${user.id}` : '';
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const customerName = user?.fullName || user?.firstName || 'Customer';
@@ -23,21 +24,37 @@ export const CustomerChatWidget = ({ defaultOrderId }: { defaultOrderId?: string
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const syncMessages = async () => {
-    const convs = await getStoredConversations(true);
-    const active = convs.find((c) => c.id === conversationId) || convs[0];
-    if (active && active.messages) {
-      setMessages(active.messages);
+  const syncMessages = useCallback(async () => {
+    if (!user?.id) {
+      setMessages([]);
+      return;
     }
-  };
+    try {
+      const convs = await getStoredConversations(true, user.id);
+      const active = convs.find((c) => c.id === conversationId) || convs[0];
+      if (active && active.messages) {
+        setMessages(active.messages);
+      }
+    } catch (error) {
+      console.error('Customer chat sync failed:', error);
+    }
+  }, [user]);
 
   useEffect(() => {
     syncMessages();
     const unsubscribe = subscribeToChatUpdates(() => {
       syncMessages();
     });
-    return () => unsubscribe();
-  }, []);
+    // Realtime is used for low-latency updates, while polling guarantees
+    // delivery when a tab or websocket temporarily goes offline.
+    const refreshTimer = window.setInterval(() => {
+      syncMessages();
+    }, 4000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(refreshTimer);
+    };
+  }, [syncMessages]);
 
   useEffect(() => {
     if (isOpen) {
@@ -50,8 +67,14 @@ export const CustomerChatWidget = ({ defaultOrderId }: { defaultOrderId?: string
     const text = inputText.trim();
     setInputText('');
 
-    await appendMessage(conversationId, 'customer', text, customerName);
-    syncMessages();
+    if (!user) return;
+    try {
+      await appendMessage(conversationId, 'customer', text, customerName, user.id);
+      await syncMessages();
+    } catch (error) {
+      console.error('Customer chat send failed:', error);
+      toast.error('Message could not be sent. Please try again.');
+    }
   };
 
   return (
@@ -116,12 +139,13 @@ export const CustomerChatWidget = ({ defaultOrderId }: { defaultOrderId?: string
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Ask owner a question..."
+                placeholder={user ? 'Ask owner a question...' : 'Sign in to chat with the owner'}
+                disabled={!user}
                 className="flex-1 bg-slate-950 border border-slate-700 rounded-full h-10 px-4 text-xs text-white font-medium placeholder:text-slate-400 focus:outline-none focus:border-[#a35d70]"
               />
               <button
                 onClick={handleSend}
-                disabled={!inputText.trim()}
+                disabled={!user || !inputText.trim()}
                 className="w-10 h-10 rounded-full bg-[#a35d70] text-white flex items-center justify-center shadow-md disabled:opacity-40 hover:bg-[#8f4f60] hover:scale-105 transition-all"
               >
                 <Send className="w-4 h-4" />

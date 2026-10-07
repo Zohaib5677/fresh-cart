@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
+import { callAdminData } from '@/lib/adminData';
 import { toast } from 'sonner';
-import { useAuth } from '@clerk/clerk-react';
 
 interface FlatDiscountSettings {
   enabled: boolean;
@@ -17,7 +17,6 @@ interface FlatDiscountSettings {
 }
 
 const AdminDiscountSettings = () => {
-  const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<FlatDiscountSettings>({
@@ -59,12 +58,10 @@ const AdminDiscountSettings = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase.functions.invoke('admin-data', {
-        body: {
-          action: 'update_settings',
-          key: 'flat_discount',
-          value: JSON.parse(JSON.stringify(settings))
-        }
+      const { error } = await callAdminData({
+        action: 'update_settings',
+        key: 'flat_discount',
+        value: JSON.parse(JSON.stringify(settings))
       });
 
       if (error) throw error;
@@ -81,12 +78,10 @@ const AdminDiscountSettings = () => {
     setSaving(true);
     try {
       const disabledSettings = { enabled: false, percentage: 0, banner_text: '' };
-      const { error } = await supabase.functions.invoke('admin-data', {
-        body: {
-          action: 'update_settings',
-          key: 'flat_discount',
-          value: JSON.parse(JSON.stringify(disabledSettings))
-        }
+      const { error } = await callAdminData({
+        action: 'update_settings',
+        key: 'flat_discount',
+        value: JSON.parse(JSON.stringify(disabledSettings))
       });
 
       if (error) throw error;
@@ -110,31 +105,34 @@ const AdminDiscountSettings = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">Discount Settings</h2>
+      <div>
+        <h2 className="font-serif text-3xl font-normal text-[#242024]">Discount Settings</h2>
+        <p className="text-xs text-[#716b70] mt-0.5">Configure store-wide flat discounts and promotional banners</p>
+      </div>
 
       {/* Flat Discount Card */}
-      <Card className="bg-slate-800 border-slate-700">
-        <CardHeader>
+      <Card className="rounded-2xl border border-[#e8e3e5] bg-[#fffdfc] shadow-sm overflow-hidden">
+        <CardHeader className="border-b border-[#e8e3e5]/70 bg-[#faf7f5] px-6 py-5">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/20">
-              <Percent className="h-5 w-5 text-amber-500" />
+            <div className="p-2.5 rounded-xl bg-[#f5e6e8] text-[#a35d70]">
+              <Percent className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-foreground">Site-Wide Flat Discount</CardTitle>
-              <CardDescription className="text-slate-400">
-                Apply a percentage discount to all products across the store
+              <CardTitle className="font-serif text-xl font-normal text-[#242024]">Site-Wide Flat Discount</CardTitle>
+              <CardDescription className="text-xs text-[#716b70] mt-0.5">
+                Apply an automatic percentage discount to all products across your store
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 px-6 py-6">
           {/* Enable/Disable Toggle */}
-          <div className="flex items-center justify-between p-4 bg-slate-900 rounded-lg">
+          <div className="flex items-center justify-between p-4 rounded-xl border border-[#e8e3e5] bg-[#f9f7f6]">
             <div className="flex items-center gap-3">
-              <Tag className="h-5 w-5 text-slate-400" />
+              <Tag className="h-5 w-5 text-[#a35d70]" />
               <div>
-                <Label className="text-foreground font-medium">Enable Flat Discount</Label>
-                <p className="text-sm text-slate-400">Show discount banner and apply to all products</p>
+                <Label className="text-sm font-medium text-[#242024]">Enable Flat Discount</Label>
+                <p className="text-xs text-[#716b70]">Display announcement banner and auto-apply discount</p>
               </div>
             </div>
             <Switch
@@ -145,38 +143,44 @@ const AdminDiscountSettings = () => {
 
           {/* Discount Percentage */}
           <div className="space-y-2">
-            <Label className="text-slate-300">Discount Percentage (%)</Label>
+            <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">
+              Discount Percentage (%)
+            </Label>
             <Input
               type="number"
               min="0"
               max="100"
               value={settings.percentage}
               onChange={(e) => setSettings({ ...settings, percentage: parseInt(e.target.value) || 0 })}
-              className="bg-slate-900 border-slate-600 text-foreground max-w-32"
-              placeholder="e.g., 20"
+              className="h-11 rounded-xl border-[#d8cfd3] bg-white text-[#3f393e] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20 max-w-xs"
+              placeholder="e.g. 20"
             />
-            <p className="text-sm text-slate-500">Enter a value between 0 and 100</p>
+            <p className="text-xs text-[#9a9298]">Percentage deduction applied at checkout</p>
           </div>
 
           {/* Banner Text */}
           <div className="space-y-2">
-            <Label className="text-slate-300">Banner Text</Label>
+            <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">
+              Banner Text
+            </Label>
             <Textarea
               value={settings.banner_text}
               onChange={(e) => setSettings({ ...settings, banner_text: e.target.value })}
-              className="bg-slate-900 border-slate-600 text-foreground"
-              placeholder="e.g., 🎉 MEGA SALE! Flat 20% OFF on everything!"
+              className="rounded-xl border-[#d8cfd3] bg-white text-[#3f393e] placeholder:text-[#b1a8ad] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
+              placeholder="e.g. 🎉 MEGA SALE! Flat 20% OFF on all items!"
               rows={2}
             />
-            <p className="text-sm text-slate-500">This text will appear on the homepage banner</p>
+            <p className="text-xs text-[#9a9298]">This text will appear in the top banner on the storefront</p>
           </div>
 
           {/* Preview */}
           {settings.enabled && settings.percentage > 0 && (
             <div className="space-y-2">
-              <Label className="text-slate-300">Banner Preview</Label>
-              <div className="p-4 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg text-center">
-                <p className="text-foreground font-bold text-lg">
+              <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">
+                Banner Preview
+              </Label>
+              <div className="p-4 bg-[#242024] text-white rounded-xl text-center shadow-inner">
+                <p className="font-medium text-sm sm:text-base">
                   {settings.banner_text || `🎉 Flat ${settings.percentage}% OFF on all products!`}
                 </p>
               </div>
@@ -184,11 +188,11 @@ const AdminDiscountSettings = () => {
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-slate-700">
+          <div className="flex gap-3 pt-4 border-t border-[#e8e3e5]">
             <Button 
               onClick={handleSave} 
               disabled={saving}
-              className="bg-primary hover:bg-primary/90"
+              className="h-11 rounded-xl bg-[#242024] hover:bg-[#383238] text-white px-6 font-medium shadow-sm transition-colors"
             >
               <Save className="h-4 w-4 mr-2" />
               {saving ? 'Saving...' : 'Save Changes'}
@@ -198,6 +202,7 @@ const AdminDiscountSettings = () => {
                 variant="destructive"
                 onClick={handleDisableDiscount}
                 disabled={saving}
+                className="h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-5 font-medium transition-colors"
               >
                 <X className="h-4 w-4 mr-2" />
                 Disable Discount
@@ -208,31 +213,31 @@ const AdminDiscountSettings = () => {
       </Card>
 
       {/* Individual Product Discounts Info */}
-      <Card className="bg-slate-800 border-slate-700">
-        <CardHeader>
+      <Card className="rounded-2xl border border-[#e8e3e5] bg-[#fffdfc] shadow-sm overflow-hidden">
+        <CardHeader className="border-b border-[#e8e3e5]/70 bg-[#faf7f5] px-6 py-5">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-500/20">
-              <Tag className="h-5 w-5 text-purple-500" />
+            <div className="p-2.5 rounded-xl bg-[#f5e6e8] text-[#a35d70]">
+              <Tag className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-foreground">Individual Product Discounts</CardTitle>
-              <CardDescription className="text-slate-400">
-                Set discounts on specific products from the Products tab
+              <CardTitle className="font-serif text-xl font-normal text-[#242024]">Individual Product Discounts</CardTitle>
+              <CardDescription className="text-xs text-[#716b70] mt-0.5">
+                Set custom discounts on specific products from the Products tab
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="p-4 bg-slate-900 rounded-lg">
-            <p className="text-slate-300 text-sm">
+        <CardContent className="px-6 py-6">
+          <div className="p-4 rounded-xl border border-[#e8e3e5] bg-[#f9f7f6]">
+            <p className="text-[#3f393e] text-sm font-medium">
               To add a discount to a specific product:
             </p>
-            <ol className="list-decimal list-inside text-slate-400 text-sm mt-2 space-y-1">
-              <li>Go to the <strong className="text-slate-300">Products</strong> tab</li>
-              <li>Click the edit button on any product</li>
-              <li>Set the <strong className="text-slate-300">Original Price</strong> (the price before discount)</li>
-              <li>Set the <strong className="text-slate-300">Discount %</strong> percentage</li>
-              <li>The <strong className="text-slate-300">Price</strong> field should be the final discounted price</li>
+            <ol className="list-decimal list-inside text-[#716b70] text-xs mt-2 space-y-1.5 leading-relaxed">
+              <li>Go to the <strong className="text-[#242024]">Products</strong> tab in the side menu</li>
+              <li>Click the edit button on any product card or row</li>
+              <li>Set the <strong className="text-[#242024]">Original Price</strong> (the price before discount)</li>
+              <li>Set the <strong className="text-[#242024]">Discount %</strong> percentage</li>
+              <li>The <strong className="text-[#242024]">Price</strong> field will calculate as the final discounted price</li>
             </ol>
           </div>
         </CardContent>

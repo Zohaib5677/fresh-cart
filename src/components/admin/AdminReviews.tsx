@@ -130,96 +130,120 @@ const AdminReviews = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <h2 className="text-2xl font-bold text-foreground">Product Reviews</h2>
-        <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="font-serif text-3xl font-normal text-[#242024]">Product Reviews</h2>
+          <p className="text-xs text-[#716b70] mt-0.5">Manage customer feedback, star ratings, and comments</p>
+        </div>
+        <div className="flex items-center gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9a9298]" />
             <Input
               placeholder="Search reviews..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-slate-800 border-slate-600 text-foreground w-64"
+              className="pl-10 h-10 w-64 rounded-xl border-[#d8cfd3] bg-white text-sm text-[#3f393e] placeholder:text-[#b1a8ad] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
             />
           </div>
         </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-slate-800 border-slate-700 text-foreground">
-          <DialogHeader>
-            <DialogTitle>Edit Review</DialogTitle>
+        <DialogContent className="max-w-lg rounded-2xl border-[#e8e3e5] bg-[#fffdfc] p-0 text-[#3f393e] shadow-2xl overflow-hidden">
+          <DialogHeader className="border-b border-[#e8e3e5] bg-[#f4f0ed] px-6 py-5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#a35d70]">
+              Review Moderation
+            </p>
+            <DialogTitle className="mt-1 font-serif text-2xl font-normal text-[#242024]">
+              Edit Review
+            </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-5 px-6 py-6">
             <div className="space-y-2">
-              <Label>Rating (1-5)</Label>
+              <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">
+                Rating (1 to 5 Stars)
+              </Label>
               <Input
                 type="number"
                 min="1"
                 max="5"
                 value={formData.rating}
                 onChange={(e) => setFormData({ ...formData, rating: Number(e.target.value) })}
-                className="bg-slate-900 border-slate-600"
+                className="h-11 rounded-xl border-[#d8cfd3] bg-white text-[#3f393e] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
               />
             </div>
             <div className="space-y-2">
-              <Label>Comment</Label>
+              <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70]">
+                Comment Text
+              </Label>
               <Textarea
                 rows={4}
                 value={formData.comment}
                 onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                className="bg-slate-900 border-slate-600"
+                className="rounded-xl border-[#d8cfd3] bg-white text-[#3f393e] focus-visible:border-[#a35d70] focus-visible:ring-[#a35d70]/20"
               />
             </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleSave}>Update Review</Button>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="h-11 rounded-xl border-[#d8cfd3] text-[#3f393e] hover:bg-[#f4f0ed]"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="h-11 rounded-xl bg-[#242024] font-medium text-white hover:bg-[#383238] transition-colors shadow-sm px-6"
+              >
+                Update Review
+              </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      <Card className="bg-slate-800 border-slate-700">
+      <Card className="rounded-2xl border border-[#e8e3e5] bg-[#fffdfc] shadow-sm overflow-hidden">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-700">
-                <TableHead className="text-slate-300">Product</TableHead>
-                <TableHead className="text-slate-300">Customer</TableHead>
-                <TableHead className="text-slate-300">Rating</TableHead>
-                <TableHead className="text-slate-300">Comment</TableHead>
-                <TableHead className="text-slate-300">Date</TableHead>
-                <TableHead className="text-slate-300 text-right">Actions</TableHead>
+              <TableRow className="bg-[#f8f5f3] border-b border-[#e8e3e5]">
+                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70] h-12 px-4">Product</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70] h-12 px-4">Customer</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70] h-12 px-4">Rating</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70] h-12 px-4">Comment</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70] h-12 px-4">Date</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#716b70] h-12 px-4 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredReviews.map((review) => (
-                <TableRow key={review.id} className="border-slate-700">
-                  <TableCell className="font-medium text-foreground max-w-[200px] truncate">
+                <TableRow key={review.id} className="border-b border-[#e8e3e5]/70 hover:bg-[#faf7f5]/70 transition-colors">
+                  <TableCell className="px-4 py-3.5 font-medium text-[#242024] max-w-[200px] truncate">
                     {review.product?.name || 'Unknown Product'}
                   </TableCell>
-                  <TableCell className="text-slate-300">
+                  <TableCell className="px-4 py-3.5 text-sm text-[#5f595d]">
                     {review.profiles?.full_name || 'Anonymous User'}
                   </TableCell>
-                  <TableCell className="text-slate-300">
-                    <div className="flex items-center gap-1 text-amber-400">
-                      <Star className="h-4 w-4 fill-current" />
+                  <TableCell className="px-4 py-3.5">
+                    <div className="flex items-center gap-1 text-amber-500 font-semibold text-xs bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 w-fit">
+                      <Star className="h-3.5 w-3.5 fill-current" />
                       <span>{review.rating}.0</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-slate-300 max-w-[300px] truncate">
-                    {review.comment || <span className="text-slate-500 italic">No comment</span>}
+                  <TableCell className="px-4 py-3.5 text-xs text-[#3f393e] max-w-[300px] truncate">
+                    {review.comment || <span className="text-[#9a9298] italic">No comment text</span>}
                   </TableCell>
-                  <TableCell className="text-slate-400 text-sm">
+                  <TableCell className="px-4 py-3.5 text-xs text-[#716b70]">
                     {format(new Date(review.created_at), 'MMM d, yyyy')}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                  <TableCell className="px-4 py-3.5 text-right">
+                    <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleOpenDialog(review)}
-                        className="text-slate-400 hover:text-foreground"
+                        className="h-8 w-8 rounded-lg text-[#5f595d] hover:text-[#242024] hover:bg-[#f4f0ed]"
+                        title="Edit Review"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -227,7 +251,8 @@ const AdminReviews = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDelete(review.id)}
-                        className="text-slate-400 hover:text-red-500"
+                        className="h-8 w-8 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50"
+                        title="Delete Review"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -237,7 +262,7 @@ const AdminReviews = () => {
               ))}
               {filteredReviews.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-slate-400 py-8">
+                  <TableCell colSpan={6} className="text-center text-[#716b70] py-12">
                     No reviews found.
                   </TableCell>
                 </TableRow>

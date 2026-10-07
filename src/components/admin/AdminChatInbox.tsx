@@ -22,26 +22,35 @@ export const AdminChatInbox = () => {
   const loadData = async (forceRemote = false) => {
     setLoading(true);
     try {
-      const convs = await getStoredConversations(forceRemote);
+      const convs = await getStoredConversations(forceRemote, undefined, true);
       setConversations(convs);
       if (convs.length > 0 && !convs.find((c) => c.id === selectedConvId)) {
         setSelectedConvId(convs[0].id);
       }
     } catch (e) {
-      console.warn('Error loading admin chat conversations:', e);
+      console.error('Error loading admin chat conversations:', e);
+      toast.error(e instanceof Error ? e.message : 'Unable to load chats.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(true);
     const unsubscribe = subscribeToChatUpdates(() => {
       // Realtime events must bypass localStorage, otherwise the UI keeps
       // rendering the stale snapshot that was cached before the event.
       loadData(true);
     });
-    return () => unsubscribe();
+    // Keep the inbox synchronized even when the browser or Supabase does not
+    // deliver a realtime event (for example after a sleeping tab resumes).
+    const refreshTimer = window.setInterval(() => {
+      loadData(true);
+    }, 4000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(refreshTimer);
+    };
   }, []);
 
   const selectedConv = conversations.find((c) => c.id === selectedConvId) || conversations[0];
@@ -56,8 +65,14 @@ export const AdminChatInbox = () => {
     const text = replyText.trim();
     setReplyText('');
 
-    await appendMessage(selectedConv.id, 'owner', text);
-    toast.success('Reply sent to customer!');
+    try {
+      await appendMessage(selectedConv.id, 'owner', text);
+      toast.success('Reply sent to customer!');
+      await loadData(true);
+    } catch (error) {
+      console.error('Admin chat reply failed:', error);
+      toast.error('Reply could not be sent. Please try again.');
+    }
   };
 
   return (

@@ -27,7 +27,7 @@ const HeroSection = ({ products }: HeroSectionProps) => {
   const showPrevious = () => setActiveIndex((activeIndex - 1 + editorialProducts.length) % editorialProducts.length);
 
   return (
-    <section className="hero-editorial pt-24 md:pt-36">
+    <section className="hero-editorial pt-[48px] md:pt-24 lg:pt-32">
       <div className="mx-auto w-full">
         {/* <div className="flex min-h-[340px] flex-col justify-center bg-[#d8c5ee] p-7 md:min-h-[430px] md:p-10">
           <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#72577e]">✣ Vertexo trends</p>

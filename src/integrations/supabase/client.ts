@@ -4,18 +4,6 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-/** True only if Clerk returned a JWT this Supabase project can verify. */
-function isSupabaseAccessToken(token: string | null | undefined): token is string {
-  if (!token || token.split('.').length !== 3) return false;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-    const iss = String(payload.iss || '');
-    return Boolean(SUPABASE_URL) && iss.startsWith(SUPABASE_URL);
-  } catch {
-    return false;
-  }
-}
-
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   global: {
     fetch: async (url, options = {}) => {
@@ -33,17 +21,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       const isStorageRequest = urlStr.includes('/storage/v1/object');
       const isFunctionRequest = urlStr.includes('/functions/v1/');
       const explicitAuthorization = headers.get('Authorization');
-      const hasExplicitFunctionToken =
-        isFunctionRequest &&
-        explicitAuthorization?.startsWith('Bearer ') &&
-        explicitAuthorization !== `Bearer ${SUPABASE_PUBLISHABLE_KEY}`;
+      const hasExplicitFunctionToken = isFunctionRequest && explicitAuthorization?.startsWith('Bearer ');
 
       // Storage rejects Clerk `sub` values that are not UUIDs.
       if (hasExplicitFunctionToken) {
         // Preserve caller-supplied Clerk tokens for Edge Functions.
-      } else if (isStorageRequest || !isSupabaseAccessToken(clerkToken)) {
+      } else if (isStorageRequest || !clerkToken) {
         headers.set('Authorization', `Bearer ${SUPABASE_PUBLISHABLE_KEY}`);
       } else {
+        // Keep the Clerk JWT so Supabase RLS can identify the customer/admin.
         headers.set('Authorization', `Bearer ${clerkToken}`);
       }
 

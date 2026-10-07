@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuth as useClerkAuth } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
+import { callAdminData } from '@/lib/adminData';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -136,12 +137,9 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
         })
       };
 
-      const { data, error } = await supabase.functions.invoke('admin-data', {
-          body: {
-              action: 'create_review',
-              reviewData
-          },
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+      const { data, error } = await callAdminData({
+        action: 'create_review',
+        reviewData
       });
 
       if (error) throw error;
@@ -162,14 +160,10 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
   // Delete review mutation
   const deleteReview = useMutation({
     mutationFn: async (reviewId: string) => {
-      const token = await getToken();
-      const { data, error } = await supabase.functions.invoke('admin-data', {
-          body: {
-              action: 'delete_review',
-              reviewId,
-              userId: user?.id
-          },
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+      const { data, error } = await callAdminData({
+        action: 'delete_review',
+        reviewId,
+        userId: user?.id
       });
 
       if (error) throw error;

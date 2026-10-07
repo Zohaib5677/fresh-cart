@@ -42,6 +42,7 @@ interface Order {
   shipping_address: string;
   shipping_city: string;
   total_amount: number;
+  quantity: number;
   status: OrderStatus;
   notes: string | null;
   admin_note: string | null;
@@ -88,7 +89,27 @@ const AdminOrders = () => {
       const { data, error } = await callAdminData({ table: 'orders' });
 
       if (error) throw error;
-      setOrders(data || []);
+
+      const { data: orderItems, error: orderItemsError } = await supabase
+        .from('order_items')
+        .select('order_id, quantity');
+
+      if (orderItemsError) throw orderItemsError;
+
+      const quantitiesByOrderId = (orderItems || []).reduce<Record<string, number>>(
+        (totals, item) => {
+          totals[item.order_id] = (totals[item.order_id] || 0) + item.quantity;
+          return totals;
+        },
+        {},
+      );
+
+      setOrders(
+        (data || []).map((order) => ({
+          ...order,
+          quantity: quantitiesByOrderId[order.id] || 0,
+        })),
+      );
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error('Failed to load orders');
@@ -242,14 +263,12 @@ const AdminOrders = () => {
     
     setIsProcessing(true);
     try {
-      const { error } = await supabase.functions.invoke('admin-data', {
-        body: {
-          action: 'update_order',
-          orderId,
-          updateData: {
-            status: 'cancelled',
-            admin_note: adminNote.trim()
-          }
+      const { error } = await callAdminData({
+        action: 'update_order',
+        orderId,
+        updateData: {
+          status: 'cancelled',
+          admin_note: adminNote.trim()
         }
       });
 
@@ -308,6 +327,7 @@ const AdminOrders = () => {
           <TableHead className="text-slate-300">Order ID</TableHead>
           <TableHead className="text-slate-300">Customer</TableHead>
           <TableHead className="text-slate-300">City</TableHead>
+          <TableHead className="text-slate-300">Quantity</TableHead>
           <TableHead className="text-slate-300">Amount</TableHead>
           <TableHead className="text-slate-300">Status</TableHead>
           <TableHead className="text-slate-300">Date</TableHead>
@@ -333,6 +353,7 @@ const AdminOrders = () => {
               </div>
             </TableCell>
             <TableCell className="text-slate-300">{order.shipping_city}</TableCell>
+            <TableCell className="text-slate-300">{order.quantity}</TableCell>
             <TableCell className="text-slate-300">{formatPrice(order.total_amount)}</TableCell>
             <TableCell>
               <DropdownMenu>
@@ -385,7 +406,7 @@ const AdminOrders = () => {
         ))}
         {orderList.length === 0 && (
           <TableRow>
-            <TableCell colSpan={7} className="text-center text-slate-400 py-8">
+            <TableCell colSpan={8} className="text-center text-slate-400 py-8">
               No orders found.
             </TableCell>
           </TableRow>

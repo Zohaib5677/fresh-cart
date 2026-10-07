@@ -16,7 +16,7 @@ const MobileBottomNav = () => {
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Search, label: 'Shop', path: '/products' },
-    { icon: ShoppingBag, label: 'Orders', path: user ? '/orders' : '/auth' },
+    { icon: ShoppingBag, label: 'Cart', path: '/cart', showBadge: true },
     { icon: User, label: 'Account', path: user ? '/account' : '/auth' },
   ];
 
@@ -29,11 +29,18 @@ const MobileBottomNav = () => {
             <Link
               key={item.label}
               to={item.path}
-                className={`flex h-full w-16 flex-col items-center justify-center gap-1 transition-colors ${
-                  active ? 'text-[#a35d70]' : 'text-[#8f878d] hover:text-[#4e484d]'
+              className={`flex h-full w-16 flex-col items-center justify-center gap-1 transition-colors relative ${
+                active ? 'text-[#a35d70]' : 'text-[#8f878d] hover:text-[#4e484d]'
               }`}
             >
-              <item.icon className={`h-5 w-5 ${active ? 'fill-[#a35d70]/20' : ''}`} />
+              <div className="relative">
+                <item.icon className={`h-5 w-5 ${active ? 'fill-[#a35d70]/20' : ''}`} />
+                {item.showBadge && cartItemsCount > 0 && (
+                  <span className="absolute -right-2 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#c97685] text-[9px] font-bold text-white">
+                    {cartItemsCount}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );

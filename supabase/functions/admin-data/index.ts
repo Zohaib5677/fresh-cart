@@ -51,7 +51,7 @@ serve(async (req) => {
       userEmail = adminEmailConfig;
     }
 
-    // Option 2: JWT decoding (unverified, relies on ADMIN_EMAIL check)
+    // Option 2: Decode the JWT, then resolve the authoritative Clerk user.
     if (!isAdmin) {
       const authHeader = req.headers.get('Authorization') ?? '';
       const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
@@ -60,7 +60,7 @@ serve(async (req) => {
         const payload = decodeJwtPayload(token);
         if (payload) {
           userId = payload.sub ?? null;
-          // Clerk puts email in different places depending on template
+          // Email claims are optional in Clerk JWT templates.
           userEmail =
             payload.email ??
             payload.primary_email_address ??
@@ -69,28 +69,37 @@ serve(async (req) => {
             null;
         }
 
-        // If email not in JWT, try fetching from Clerk API
-        if (!userEmail && userId && adminEmailConfig && Deno.env.get('CLERK_SECRET_KEY')) {
+        // Always fetch the Clerk user when possible because the Supabase
+        // template may omit email claims or contain a non-primary address.
+        if (userId && Deno.env.get('CLERK_SECRET_KEY')) {
           try {
             const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
               headers: { Authorization: `Bearer ${Deno.env.get('CLERK_SECRET_KEY')}` }
             });
             if (clerkRes.ok) {
               const clerkUser = await clerkRes.json();
-              const match = clerkUser?.email_addresses?.find((e: any) => e.email_address === adminEmailConfig);
-              if (match) userEmail = match.email_address;
+              const primaryEmail = clerkUser?.email_addresses?.find(
+                (e: any) => e.id === clerkUser?.primary_email_address_id
+              );
+              userEmail =
+                primaryEmail?.email_address ??
+                clerkUser?.email_addresses?.[0]?.email_address ??
+                userEmail;
             }
           } catch (e) {
             console.error('Clerk fetch error:', e);
           }
         }
 
-        if (adminEmailConfig && userEmail === adminEmailConfig) {
+        const adminUserId = Deno.env.get('ADMIN_USER_ID') ?? '';
+        if (
+          adminEmailConfig &&
+          userEmail?.trim().toLowerCase() === adminEmailConfig.trim().toLowerCase()
+        ) {
           isAdmin = true;
         }
 
         // Also check: if userId matches admin userId stored in env
-        const adminUserId = Deno.env.get('ADMIN_USER_ID') ?? '';
         if (adminUserId && userId === adminUserId) {
           isAdmin = true;
         }
@@ -119,6 +128,79 @@ serve(async (req) => {
 
     const action = requestData.action || 'read';
     const table = requestData.table || 'profiles';
+
+    if (action === 'chat_list') {
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: 'Admin access required' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        });
+      }
+
+      const { data: conversations, error: conversationsError } = await supabase
+        .from('conversations')
+        .select('*')
+        .order('last_message_at', { ascending: false });
+      if (conversationsError) throw conversationsError;
+
+      const result = [];
+      for (const conversation of conversations || []) {
+        const { data: messages, error: messagesError } = await supabase
+          .from('conversation_messages')
+          .select('*')
+          .eq('conversation_id', conversation.id)
+          .order('created_at', { ascending: true });
+        if (messagesError) throw messagesError;
+        result.push({ ...conversation, messages: messages || [] });
+      }
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+
+    if (action === 'chat_reply') {
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: 'Admin access required' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        });
+      }
+
+      const { conversationId, message } = requestData;
+      if (!conversationId || !String(message || '').trim()) {
+        return new Response(JSON.stringify({ error: 'conversationId and message are required' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        });
+      }
+
+      const { data: insertedMessage, error: messageError } = await supabase
+        .from('conversation_messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_type: 'owner',
+          message: String(message).trim(),
+        })
+        .select()
+        .single();
+      if (messageError) throw messageError;
+
+      const { error: conversationError } = await supabase
+        .from('conversations')
+        .update({
+          last_message_at: insertedMessage.created_at,
+          last_message_preview: String(message).trim(),
+        })
+        .eq('id', conversationId);
+      if (conversationError) throw conversationError;
+
+      return new Response(JSON.stringify(insertedMessage), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
 
     // --- User Orders (no admin required) ---
     if (table === 'user_orders') {

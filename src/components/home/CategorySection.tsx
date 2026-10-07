@@ -15,12 +15,9 @@ const CategorySection = ({ products }: CategorySectionProps) => {
   ).slice(0, 8);
 
   return (
-    <section className="bg-[#fffdfc] py-8 md:py-8">
+    <section className="bg-[#fffdfc] py-2 md:py-4">
       <div className="mx-auto max-w-[1440px] px-2 md:px-4">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#a35d70]">
-          Shop by mood
-        </p>
-        <div className="mt-2 flex items-end justify-between gap-4">
+               <div className="mt-2 flex items-end justify-between gap-4">
           <h2 className="font-serif text-3xl text-[#242024] md:text-4xl">
             Find your <em className="text-[#a35d70]">everyday</em>
           </h2>

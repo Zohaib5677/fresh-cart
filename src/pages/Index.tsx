@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HeroSection from '@/components/home/HeroSection';
@@ -14,6 +15,10 @@ const Index = () => {
   const exclusive = products.filter((product) => product.isExclusive);
   const promotional = products.filter((product) => product.isPromotional);
   const trending = topSelling.length > 0 ? topSelling : products;
+
+  const randomProducts = useMemo(() => {
+    return [...products].sort(() => 0.5 - Math.random());
+  }, [products]);
 
   if (isLoading) {
     return (
@@ -38,31 +43,17 @@ const Index = () => {
         
         <ProductSection
           title="Trending right now"
-          subtitle="The pieces everyone is adding to their edit"
-          products={trending.slice(0, 12)}
+          products={trending.slice(0, 10)}
           viewAllLink={topSelling.length > 0 ? '/products?filter=top-selling' : '/products'}
-          badge="The Hamaash edit"
+          scrollDirection="horizontal"
         />
-        
-        <PromoBanner products={products} />
-        
-        {exclusive.length > 0 && (
-          <ProductSection
-            title="Exclusive edit"
-            subtitle="Premium pieces selected for your wardrobe"
-            products={exclusive.slice(0, 8)}
-            viewAllLink="/products?filter=exclusive"
-            badge="Only at Hamaash"
-          />
-        )}
 
-        {promotional.length > 0 && (
+        {randomProducts.length > 0 && (
           <ProductSection
-            title="Special offers"
-            subtitle="Limited-time prices on selected pieces"
-            products={promotional.slice(0, 8)}
-            viewAllLink="/products?filter=promotional"
-            badge="Sale"
+            title="Discover More"
+            products={randomProducts}
+            viewAllLink="/products"
+            scrollDirection="vertical"
           />
         )}
       </main>

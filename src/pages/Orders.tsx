@@ -81,7 +81,7 @@ const Orders = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-900/10 via-background to-background pointer-events-none" />
       <Header />
 
-      <main className="flex-1 pt-32 pb-24 relative z-10">
+      <main className="flex-1 pt-[60px] md:pt-28 lg:pt-36 pb-24 relative z-10">
         <div className="container mx-auto px-6 max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
